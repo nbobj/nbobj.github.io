@@ -1,0 +1,358 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>17-undo日志 | XYZhi's学习笔记</title><meta name="keywords" content="mysql"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在一个事务中，当我们要对一条记录做改动时（这里的改动可以指INSERT、DELETE、UPDATE）都需要把回滚时所需的东西都给记下来，这种日志就是undo log，也就是回滚日志，也叫undo日志。而会在两种场景下需要用到undo日志进行回滚  运行时 事务失败或手动执行了ROLLBACK  崩溃恢复时   事务id如果某个事务执行过程中对某个表执行了增、删、改操作，那么InnoDB存储引擎就会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="17-undo日志">
+<meta property="og:url" content="https://nbobj.github.io/blog/mysql/17-undo%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="在一个事务中，当我们要对一条记录做改动时（这里的改动可以指INSERT、DELETE、UPDATE）都需要把回滚时所需的东西都给记下来，这种日志就是undo log，也就是回滚日志，也叫undo日志。而会在两种场景下需要用到undo日志进行回滚  运行时 事务失败或手动执行了ROLLBACK  崩溃恢复时   事务id如果某个事务执行过程中对某个表执行了增、删、改操作，那么InnoDB存储引擎就会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2021-11-14T00:00:17.000Z">
+<meta property="article:modified_time" content="2022-03-23T12:18:13.392Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/mysql/17-undo%E6%97%A5%E5%BF%97/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '17-undo日志',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 20:18:13'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">17-undo日志</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-14T00:00:17.000Z" title="发表于 2021-11-14 08:00:17">2021-11-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T12:18:13.392Z" title="更新于 2022-03-23 20:18:13">2022-03-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="17-undo日志"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>在一个事务中，当我们要对一条记录做改动时（这里的<code>改动</code>可以指<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>）都需要把回滚时所需的东西都给记下来，这种日志就是<code>undo log</code>，也就是回滚日志，也叫undo日志。而会在两种场景下需要用到undo日志进行回滚</p>
+<ol>
+<li><p>运行时</p>
+<p>事务失败或手动执行了ROLLBACK</p>
+</li>
+<li><p>崩溃恢复时</p>
+</li>
+</ol>
+<h2 id="事务id"><a href="#事务id" class="headerlink" title="事务id"></a>事务id</h2><p>如果某个事务执行过程中对某个表执行了增、删、改操作，那么<code>InnoDB</code>存储引擎就会给它分配一个独一无二的<code>事务id</code>。</p>
+<blockquote>
+<p>注意：</p>
+<p>只有在它第一次对某个表（包括用户创建的临时表）执行增、删、改操作时才会为这个事务分配一个<code>事务id</code>，否则的话也是不分配<code>事务id</code>的。</p>
+</blockquote>
+<h3 id="事务id是怎么生成的"><a href="#事务id是怎么生成的" class="headerlink" title="事务id是怎么生成的"></a>事务id是怎么生成的</h3><p>这个<code>事务id</code>本质上就是一个数字，它的分配策略和我们前边提到的对隐藏列<code>row_id</code>（当用户没有为表创建主键和<code>UNIQUE</code>键时<code>InnoDB</code>自动创建的列）的分配策略大抵相同，具体策略如下：</p>
+<ul>
+<li><p>服务器会在内存中维护一个全局变量，每当需要为某个事务分配一个<code>事务id</code>时，就会把该变量的值当作<code>事务id</code>分配给该事务，并且把该变量自增1。</p>
+</li>
+<li><p>每当这个变量的值为<code>256</code>的倍数时，就会将该变量的值刷新到系统表空间的页号为<code>5</code>的页面中一个称之为<code>Max Trx ID</code>的属性处，这个属性占用<code>8</code>个字节的存储空间。</p>
+</li>
+<li><p>当系统下一次重新启动时，会将上边提到的<code>Max Trx ID</code>属性加载到内存中，将该值加上256之后赋值给我们前边提到的全局变量（因为在上次关机时该全局变量的值可能大于<code>Max Trx ID</code>属性值）。</p>
+</li>
+</ul>
+<p>这样就可以保证整个系统中分配的<code>事务id</code>值是一个递增的数字。先被分配<code>id</code>的事务得到的是较小的<code>事务id</code>，后被分配<code>id</code>的事务得到的是较大的<code>事务id</code>。</p>
+<h3 id="trx-id隐藏列"><a href="#trx-id隐藏列" class="headerlink" title="trx_id隐藏列"></a>trx_id隐藏列</h3><p><code>InnoDB</code>记录行格式中会保存一些隐藏列</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/7115931541478182949.png"></p>
+<p>其中trx_id就是已经提交了的最新的事务id。</p>
+<h2 id="undo日志"><a href="#undo日志" class="headerlink" title="undo日志"></a>undo日志</h2><h3 id="隐藏列roll-pointer"><a href="#隐藏列roll-pointer" class="headerlink" title="隐藏列roll_pointer"></a>隐藏列roll_pointer</h3><p>本质上就是一个指向记录对应的<code>undo日志</code>的一个指针。比方说我们上边向<code>undo_demo</code>表里插入了2条记录，每条记录都有与其对应的一条<code>undo日志</code>。记录被存储到了类型为<code>FIL_PAGE_INDEX</code>的页面中（就是我们前边一直所说的<code>数据页</code>），<code>undo日志</code>被存放到了类型为<code>FIL_PAGE_UNDO_LOG</code>的页面中。效果如图所示：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/7115931541478182950.png"></p>
+<p>从图中也可以更直观的看出来，<code>roll_pointer</code><span style="color:red">本质就是一个指针，指向记录对应的undo日志</span>。</p>
+<h3 id="Insert的undo日志"><a href="#Insert的undo日志" class="headerlink" title="Insert的undo日志"></a>Insert的undo日志</h3><p>生成一条插入undo日志</p>
+<h3 id="delete的undo日志"><a href="#delete的undo日志" class="headerlink" title="delete的undo日志"></a>delete的undo日志</h3><p>delete操作在mysql中就是逻辑删除，这个操作有两个阶段</p>
+<ol>
+<li>它把行记录中的<code>delete_mask</code>设置为1，在这个阶段会生成undo日志。而处于该阶段的行记录处于一个中间状态，该状态表示该行记录还在正常记录链表中，还未到<code>垃圾链表</code>。</li>
+<li>当该删除语句所在的事务提交之后，该记录从正常记录链表中移除，并加入到<code>垃圾链表</code>由一个<code>purge</code>线程去定时清除数据</li>
+</ol>
+<h3 id="UPDATE的undo日志"><a href="#UPDATE的undo日志" class="headerlink" title="UPDATE的undo日志"></a>UPDATE的undo日志</h3><p>在执行<code>UPDATE</code>语句时，<code>InnoDB</code>有三种不同的处理方案。</p>
+<h4 id="不更新主键的情况——就地更新（in-place-update）"><a href="#不更新主键的情况——就地更新（in-place-update）" class="headerlink" title="不更新主键的情况——就地更新（in-place update）"></a>不更新主键的情况——就地更新（in-place update）</h4><p>更新记录时，对于被更新的<span style="color:red">每个列</span>来说，如果更新后的列和更新前的列占用的存储空间都一样大，那么就可以进行<code>就地更新</code></p>
+<h4 id="不更新主键的情况——先删除掉旧记录，再插入新记录"><a href="#不更新主键的情况——先删除掉旧记录，再插入新记录" class="headerlink" title="不更新主键的情况——先删除掉旧记录，再插入新记录"></a>不更新主键的情况——先删除掉旧记录，再插入新记录</h4><p>在不更新主键的情况下，如果有<span style="color:red">任何一个</span>被更新的列更新前和更新后占用的存储空间大小不一致，那么就需要先把这条旧的记录从聚簇索引页面中删除掉，然后再根据更新后列的值创建一条新的记录插入到页面中。</p>
+<p>这里有亮点需要注意</p>
+<ol>
+<li>我们这里所说的<code>删除</code>并不是<code>delete mark</code>操作，而是真正的删除掉，也就是把这条记录从<code>正常记录链表</code>中移除并加入到<code>垃圾链表</code>中</li>
+<li>这里如果新创建的记录占用的存储空间大小不超过旧记录占用的空间，那么可以直接重用被加入到<code>垃圾链表</code>中的旧记录所占用的存储空间，否则的话需要在页面中新申请一段空间以供新记录使用，如果本页面内已经没有可用的空间的话，那就需要进行页面分裂操作，然后再插入新记录。</li>
+</ol>
+<h4 id="更新主键的情况"><a href="#更新主键的情况" class="headerlink" title="更新主键的情况"></a>更新主键的情况</h4><p>针对<code>UPDATE</code>语句中更新了记录主键值的这种情况，<code>InnoDB</code>在聚簇索引中分了两步处理：</p>
+<ol>
+<li><p>将旧记录进行<code>delete mark</code>操作</p>
+<p>注意这个<code>delete mark</code>就是更新<code>delete mark</code>，更新<code>delete mark</code>后就结束了。</p>
+</li>
+<li><p>根据更新后各列的值创建一条新记录，并将其插入到聚簇索引中（需重新定位插入的位置）。</p>
+</li>
+</ol>
+<p>所以对于这种情况，会产生两条undo日志，一条是更新<code>delete mark</code>日志，一条是插入日志。</p>
+<p>它把行记录中的<code>delete_mask</code>设置为1，事务提交后</p>
+<p>所有被删除掉的记录都会组成一个所谓的<code>垃圾链表</code>，在这个链表中的记录占用的空间称之为所谓的<code>可重用空间</code>。</p>
+<h3 id="undo日志的分类"><a href="#undo日志的分类" class="headerlink" title="undo日志的分类"></a>undo日志的分类</h3><p>会生成undo日志的语句有<code>DELETE</code>、<code>UPDATE</code>和<code>INSERt</code>。但Undo Log 可以分为，就是</p>
+<ul>
+<li><p>Insert Undo Log</p>
+<p>这中类型的undo日志，在事务提交后就可以被清除了。</p>
+</li>
+<li><p>Update Undo Log</p>
+<p>这种类型的undo日志，在事务提交后不能马上清楚，因为这些日志需要用户MVCC。</p>
+</li>
+</ul>
+<h3 id="undo的存储"><a href="#undo的存储" class="headerlink" title="undo的存储"></a>undo的存储</h3><p>undo日志时存储在页中，而这些页又归属为回滚段，在<code>InnoDB</code>中定义了<code>128</code><strong>个回滚段</strong>，这些回滚段又存储在系统表空间的第<code>5</code>号页面的某个区域中，该区域包含了128个8字节大小的格子： </p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/7115931541478182985.png"></p>
+<p>在系统表空间的第<code>5</code>号页面中存储了128个<code>Rollback Segment Header</code>页面地址，每个<code>Rollback Segment Header</code>就相当于一个回滚段。在<code>Rollback Segment Header</code>页面中，又包含<code>1024</code>个<code>undo slot</code>，每个<code>undo slot</code>都对应一个<code>Undo页面</code>链表。我们画个示意图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/7115931541478182987.png"></p>
+<blockquote>
+<p>上边只是简单的介绍了undo日志的存储结构，详情需要看[undo 日志 (下)](.&#x2F;undo 日志 (下))</p>
+</blockquote>
+<p>由于真实的修改记录是保存在数据页中的，而undo日志也是保存在页中的，这些页也是会进行刷盘操作的。也就是说undo日志是会被持久化的。这些被持久化的数据会在崩溃恢复中起到作用。</p>
+<h3 id="undo日志在崩溃恢复时的作用"><a href="#undo日志在崩溃恢复时的作用" class="headerlink" title="undo日志在崩溃恢复时的作用"></a>undo日志在崩溃恢复时的作用</h3><p>在崩溃恢复过程中，首先需要按redo日志将各个页面的数据恢复到崩溃之前的状态，这样可以保证已经提交事务的持久性。但是这里仍然存在一个问题，就是有那些没有提交的事务的redo日志可能已经刷盘了，意味着这些未提交的事务的修改也会被恢复，为了保证事务的原子性，有必要在服务器重启时将这些未提交的事务回滚掉。回滚这个工作又要落到undo日志上了。基本流程就是从持久化的undo日志找到活跃的事务，然后通过undo日志中记录的信息将该事务对页面所做的修改回滚掉，这样就保证了事务的原子性。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/mysql/17-undo%E6%97%A5%E5%BF%97/">https://nbobj.github.io/blog/mysql/17-undo日志/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/mysql/">mysql</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/mysql/18-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%92%8CMVCC/">18-事务隔离级别和MVCC</a><a class="next" href="/blog/mysql/16-redo%E6%97%A5%E5%BF%97/">16-redo日志</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1id"><span class="toc-number">1.</span> <span class="toc-text">事务id</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1id%E6%98%AF%E6%80%8E%E4%B9%88%E7%94%9F%E6%88%90%E7%9A%84"><span class="toc-number">1.1.</span> <span class="toc-text">事务id是怎么生成的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#trx-id%E9%9A%90%E8%97%8F%E5%88%97"><span class="toc-number">1.2.</span> <span class="toc-text">trx_id隐藏列</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undo%E6%97%A5%E5%BF%97"><span class="toc-number">2.</span> <span class="toc-text">undo日志</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9A%90%E8%97%8F%E5%88%97roll-pointer"><span class="toc-number">2.1.</span> <span class="toc-text">隐藏列roll_pointer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Insert%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-number">2.2.</span> <span class="toc-text">Insert的undo日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-number">2.3.</span> <span class="toc-text">delete的undo日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UPDATE%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-number">2.4.</span> <span class="toc-text">UPDATE的undo日志</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%94%AE%E7%9A%84%E6%83%85%E5%86%B5%E2%80%94%E2%80%94%E5%B0%B1%E5%9C%B0%E6%9B%B4%E6%96%B0%EF%BC%88in-place-update%EF%BC%89"><span class="toc-number">2.4.1.</span> <span class="toc-text">不更新主键的情况——就地更新（in-place update）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%94%AE%E7%9A%84%E6%83%85%E5%86%B5%E2%80%94%E2%80%94%E5%85%88%E5%88%A0%E9%99%A4%E6%8E%89%E6%97%A7%E8%AE%B0%E5%BD%95%EF%BC%8C%E5%86%8D%E6%8F%92%E5%85%A5%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">2.4.2.</span> <span class="toc-text">不更新主键的情况——先删除掉旧记录，再插入新记录</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%94%AE%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">2.4.3.</span> <span class="toc-text">更新主键的情况</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undo%E6%97%A5%E5%BF%97%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-number">2.5.</span> <span class="toc-text">undo日志的分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undo%E7%9A%84%E5%AD%98%E5%82%A8"><span class="toc-number">2.6.</span> <span class="toc-text">undo的存储</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undo%E6%97%A5%E5%BF%97%E5%9C%A8%E5%B4%A9%E6%BA%83%E6%81%A2%E5%A4%8D%E6%97%B6%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">2.7.</span> <span class="toc-text">undo日志在崩溃恢复时的作用</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

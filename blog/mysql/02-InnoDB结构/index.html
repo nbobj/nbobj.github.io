@@ -1,0 +1,866 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>02-InnoDB结构 | XYZhi's学习笔记</title><meta name="keywords" content="mysql"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="页简介InnoDB是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启我们的数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中，如果是处理写入或修改请求的话，还需要把内存中的内容刷新到磁盘上。而我们知道读写磁盘的速度非常慢，和内存读写差了几个数量级，所以当我们想从表中获取某些记录时，InnoDB存储引擎需要一条一条的把记录从磁盘上读出来么？不，那样会慢">
+<meta property="og:type" content="article">
+<meta property="og:title" content="02-InnoDB结构">
+<meta property="og:url" content="https://nbobj.github.io/blog/mysql/02-InnoDB%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="页简介InnoDB是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启我们的数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中，如果是处理写入或修改请求的话，还需要把内存中的内容刷新到磁盘上。而我们知道读写磁盘的速度非常慢，和内存读写差了几个数量级，所以当我们想从表中获取某些记录时，InnoDB存储引擎需要一条一条的把记录从磁盘上读出来么？不，那样会慢">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2021-11-14T00:00:02.000Z">
+<meta property="article:modified_time" content="2022-03-23T12:18:12.974Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/mysql/02-InnoDB%E7%BB%93%E6%9E%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '02-InnoDB结构',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 20:18:12'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">02-InnoDB结构</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-14T00:00:02.000Z" title="发表于 2021-11-14 08:00:02">2021-11-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T12:18:12.974Z" title="更新于 2022-03-23 20:18:12">2022-03-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">9.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>31分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="02-InnoDB结构"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="页简介"><a href="#页简介" class="headerlink" title="页简介"></a>页简介</h2><p><code>InnoDB</code>是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启我们的数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中，如果是处理写入或修改请求的话，还需要把内存中的内容刷新到磁盘上。而我们知道读写磁盘的速度非常慢，和内存读写差了几个数量级，所以当我们想从表中获取某些记录时，<code>InnoDB</code>存储引擎需要一条一条的把记录从磁盘上读出来么？不，那样会慢死，<code>InnoDB</code>采取的方式是：<span style="color:red">将数据划分为若干个页，以页作为磁盘和内存之间交互的基本单位，InnoDB中页的大小一般为 <em><strong>16</strong></em> KB</span>。也就是在一般情况下，一次最少从磁盘中读取16KB的内容到内存中，一次最少把内存中的16KB内容刷新到磁盘中。</p>
+<h2 id="InnoDB行格式"><a href="#InnoDB行格式" class="headerlink" title="InnoDB行格式"></a>InnoDB行格式</h2><p>我们平时是以记录为单位来向表中插入数据的，这些记录在磁盘上的存放方式也被称为<code>行格式</code>或者<code>记录格式</code>。</p>
+<p><code>InnoDB</code>存储引擎有4种不同类型的行格式—<code>Compact</code>、<code>Redundant</code>、<code>Dynamic</code>和<code>Compressed</code>。</p>
+<blockquote>
+<p>指定行格式的语法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE 表名 (列的信息) ROW_FORMAT=行格式名称</span><br><span class="line">    </span><br><span class="line">ALTER TABLE 表名 ROW_FORMAT=行格式名称</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>演示sql:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE record_format_demo (</span><br><span class="line">    c1 VARCHAR(10),</span><br><span class="line">    c2 VARCHAR(10) NOT NULL,</span><br><span class="line">    c3 CHAR(10),</span><br><span class="line">    c4 VARCHAR(10)</span><br><span class="line">) CHARSET=ascii ROW_FORMAT=COMPACT;</span><br><span class="line"></span><br><span class="line">INSERT INTO record_format_demo(c1, c2, c3, c4) VALUES(&#x27;aaaa&#x27;, &#x27;bbb&#x27;, &#x27;cc&#x27;, &#x27;d&#x27;), (&#x27;eeee&#x27;, &#x27;fff&#x27;, NULL, NULL);</span><br></pre></td></tr></table></figure>
+
+<h3 id="COMPACT行格式"><a href="#COMPACT行格式" class="headerlink" title="COMPACT行格式"></a>COMPACT行格式</h3><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291654.png"></p>
+<p>一条完整的记录其实可以被分为<code>记录的额外信息</code>和<code>记录的真实数据</code>两大部分。</p>
+<h4 id="记录的额外信息"><a href="#记录的额外信息" class="headerlink" title="记录的额外信息"></a>记录的额外信息</h4><p>这部分信息是<span style="color:red">服务器为了描述这条记录而不得不额外添加的一些信息</span>，这些额外信息分为3类，分别是<code>变长字段长度列表</code>、<code>NULL值列表</code>和<code>记录头信息</code>，我们分别看一下。</p>
+<h5 id="变长字段长度列表"><a href="#变长字段长度列表" class="headerlink" title="变长字段长度列表"></a>变长字段长度列表</h5><p><code>MySQL</code>支持一些变长的数据类型，比如<code>VARCHAR(M)</code>、<code>VARBINARY(M)</code>、各种<code>TEXT</code>类型，各种<code>BLOB</code>类型，我们也可以把拥有这些数据类型的列称为<code>变长字段</code>，变长字段中存储多少字节的数据是不固定的，所以我们在存储真实数据的时候需要顺便把这些数据占用的字节数也存起来。所以这些变长字段占用的存储空间分为两部分：</p>
+<ol>
+<li>真正的数据内容</li>
+<li>占用的字节数</li>
+</ol>
+<p>在<code>Compact</code>行格式中，<span style="color:red">把所有变长字段的真实数据占用的字节长度都存放在记录的开头部位，从而形成一个变长字段长度列表，各变长字段数据占用的字节数按照列的顺序逆序存放</span>。</p>
+<p>我们拿<code>record_format_demo</code>表中的第一条记录来举个例子。因为<code>record_format_demo</code>表的<code>c1</code>、<code>c2</code>、<code>c4</code>列都是<code>VARCHAR(10)</code>类型的，也就是变长的数据类型，所以这三个列的值的长度都需要保存在记录开头处，因为<code>record_format_demo</code>表中的各个列都使用的是<code>ascii</code>字符集，所以每个字符只需要1个字节来进行编码，来看一下第一条记录各变长字段内容的长度：</p>
+<table>
+<thead>
+<tr>
+<th align="center">列名</th>
+<th align="center">存储内容</th>
+<th align="center">内容长度（十进制表示）</th>
+<th align="center">内容长度（十六进制表示）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>c1</code></td>
+<td align="center"><code>&#39;aaaa&#39;</code></td>
+<td align="center"><code>4</code></td>
+<td align="center"><code>0x04</code></td>
+</tr>
+<tr>
+<td align="center"><code>c2</code></td>
+<td align="center"><code>&#39;bbb&#39;</code></td>
+<td align="center"><code>3</code></td>
+<td align="center"><code>0x03</code></td>
+</tr>
+<tr>
+<td align="center"><code>c4</code></td>
+<td align="center"><code>&#39;d&#39;</code></td>
+<td align="center"><code>1</code></td>
+<td align="center"><code>0x01</code></td>
+</tr>
+</tbody></table>
+<p>又因为这些长度值需要按照列的<span style="color:red">逆序</span>存放，所以最后<code>变长字段长度列表</code>的字节串用十六进制表示的效果就是（各个字节之间实际上没有空格，用空格隔开只是方便理解）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">01 03 04 </span><br></pre></td></tr></table></figure>
+
+<p>把这个字节串组成的<code>变长字段长度列表</code>填入上边的示意图中的效果就是：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/2846519073640349698.png"></p>
+<p>由于第一行记录中<code>c1</code>、<code>c2</code>、<code>c4</code>列中的字符串都比较短，也就是说内容占用的字节数比较小，内容长度的值用1个字节就可以表示，但是如果变长列的内容占用的字节数比较多，可能就需要用2个字节来表示。具体用1个还是2个字节来表示真实数据占用的字节数，<code>InnoDB</code>有它的一套规则，我们首先声明一下<code>W</code>、<code>M</code>和<code>L</code>的意思：</p>
+<ol>
+<li>假设某个字符集中表示一个字符最多需要使用的字节数为<code>W</code>，也就是使用<code>SHOW CHARSET</code>语句的结果中的<code>Maxlen</code>列，比方说<code>utf8</code>字符集中的<code>W</code>就是<code>3</code>，<code>gbk</code>字符集中的<code>W</code>就是<code>2</code>，<code>ascii</code>字符集中的<code>W</code>就是<code>1</code>。</li>
+<li>对于变长类型<code>VARCHAR(M)</code>来说，这种类型表示能存储最多<code>M</code>个字符（注意是字符不是字节），所以这个类型能表示的字符串最多占用的字节数就是<code>M×W</code>。</li>
+<li>假设它实际存储的字符串占用的字节数是<code>L</code>。</li>
+</ol>
+<p>如果该可变字段允许存储的最大字节数（<code>M×W</code>）超过255字节并且真实存储的字节数（<code>L</code>）超过127字节，则使用2个字节，否则使用1个字节。</p>
+<blockquote>
+<p>注意：</p>
+<p>对于一些占用字节数非常多的字段，比方说某个字段长度大于了16KB，那么如果该记录在单个页面中无法存储时，InnoDB会把一部分数据存放到所谓的溢出页中，在变长字段长度列表处只存储留在本页面中的长度，所以使用两个字节也可以存放下来。</p>
+</blockquote>
+<p>另外需要注意的一点是，<span style="color:red">变长字段长度列表中只存储值为 <em><strong>非NULL</strong></em> 的列内容占用的长度，值为 <em><strong>NULL</strong></em> 的列的长度是不储存的 </span>。上边<code>record_format_demo</code>表的两条记录如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291656.png" alt="img"></p>
+<p>并不是所有记录都有这个 变长字段长度列表 部分，比方说表中所有的列都不是变长的数据类型的话，这一部分就不需要有。</p>
+<h5 id="NULL值列表"><a href="#NULL值列表" class="headerlink" title="NULL值列表"></a>NULL值列表</h5><p>我们知道表中的某些列可能存储<code>NULL</code>值，如果把这些<code>NULL</code>值都放到<code>记录的真实数据</code>中存储会很占地方，所以<code>Compact</code>行格式把这些值为<code>NULL</code>的列统一管理起来，存储到<code>NULL</code>值列表中，它的处理过程是这样的：</p>
+<ol>
+<li>首先统计表中允许存储<code>NULL</code>的列有哪些。</li>
+<li><span style="color:red">如果表中没有允许存储 <em><strong>NULL</strong></em> 的列，则 <em>NULL值列表</em> 也不存在了</span>，否则将每个允许存储<code>NULL</code>的列对应一个二进制位，二进制位按照列的顺序<span style="color:red">逆序</span>排列，二进制位表示的意义如下：<ul>
+<li>二进制位的值为<code>1</code>时，代表该列的值为<code>NULL</code>。</li>
+<li>二进制位的值为<code>0</code>时，代表该列的值不为<code>NULL</code>。</li>
+</ul>
+</li>
+<li><code>MySQL</code>规定<code>NULL值列表</code>必须用整数个字节的位表示，如果使用的二进制位个数不是整数个字节，则在字节的高位补<code>0</code>。</li>
+</ol>
+<p>看表<code>record_format_demo</code>中的两条记录：</p>
+<ol>
+<li><p>对于第一条记录来说，<code>c1</code>、<code>c3</code>、<code>c4</code>这3个列的值都不为<code>NULL</code>，所以它们对应的二进制位都是<code>0</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291657.png" alt="img"></p>
+</li>
+<li><p>对于第二条记录来说，<code>c1</code>、<code>c3</code>、<code>c4</code>这3个列中<code>c3</code>和<code>c4</code>的值都为<code>NULL</code></p>
+</li>
+</ol>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291658.png" alt="img"></p>
+<p>所以这两条记录在填充了<code>NULL值列表</code>后的示意图就是这样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291659.png" alt="img"></p>
+<h5 id="记录头信息"><a href="#记录头信息" class="headerlink" title="记录头信息"></a>记录头信息</h5><p>它是由固定的<code>5</code>个字节组成。<code>5</code>个字节也就是<code>40</code>个二进制位，不同的位代表不同的意思</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291660.png"></p>
+<p>这些二进制位代表的详细信息如下表：</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">大小（单位：bit）</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>预留位1</code></td>
+<td align="center"><code>1</code></td>
+<td align="center">没有使用</td>
+</tr>
+<tr>
+<td align="center"><code>预留位2</code></td>
+<td align="center"><code>1</code></td>
+<td align="center">没有使用</td>
+</tr>
+<tr>
+<td align="center"><code>delete_mask</code></td>
+<td align="center"><code>1</code></td>
+<td align="center">标记该记录是否被删除</td>
+</tr>
+<tr>
+<td align="center"><code>min_rec_mask</code></td>
+<td align="center"><code>1</code></td>
+<td align="center">B+树的每层非叶子节点中的最小记录都会添加该标记</td>
+</tr>
+<tr>
+<td align="center"><code>n_owned</code></td>
+<td align="center"><code>4</code></td>
+<td align="center">表示当前记录拥有的记录数</td>
+</tr>
+<tr>
+<td align="center"><code>heap_no</code></td>
+<td align="center"><code>13</code></td>
+<td align="center">表示当前记录在记录堆的位置信息</td>
+</tr>
+<tr>
+<td align="center"><code>record_type</code></td>
+<td align="center"><code>3</code></td>
+<td align="center">表示当前记录的类型，<code>0</code>表示普通记录，<code>1</code>表示B+树非叶子节点记录，<code>2</code>表示最小记录，<code>3</code>表示最大记录</td>
+</tr>
+<tr>
+<td align="center"><code>next_record</code></td>
+<td align="center"><code>16</code></td>
+<td align="center">表示下一条记录的相对位置</td>
+</tr>
+</tbody></table>
+<ul>
+<li><code>delete_mask</code><br>这个属性标记着当前记录是否被删除，占用1个二进制位，值为<code>0</code>的时候代表记录并没有被删除，为<code>1</code>的时候代表记录被删除掉了。这些被删除的记录之所以不立即从磁盘上移除，是因为移除它们之后把其他的记录在磁盘上重新排列需要性能消耗，所以只是打一个删除标记而已，所有被删除掉的记录都会组成一个所谓的<code>垃圾链表</code>，在这个链表中的记录占用的空间称之为所谓的<code>可重用空间</code>，之后如果有新记录插入到表中的话，可能把这些被删除的记录占用的存储空间覆盖掉。</li>
+<li><code>min_rec_mask</code><br>B+树的每层非叶子节点中的最小记录都会添加该标记，<code>min_rec_mask</code>是<code>0</code>，意味着它们都不是<code>B+</code>树的非叶子节点中的最小记录。</li>
+<li><code>n_owned</code><br>表示该记录拥有多少条记录，也就是该组内共有几条记录。（[Page Directory（页目录）](#Page Directory（页目录）)）</li>
+<li><code>heap_no</code><br>这个属性表示当前记录在本<code>页</code>中的位置，用户数据从2开始，0和1分配给了<code>最小记录(Infimum)</code>，和<code>最大记录(Supremum)</code></li>
+<li><code>record_type</code><br>这个属性表示当前记录的类型，一共有4种类型的记录，<code>0</code>表示普通记录，<code>1</code>表示B+树非叶节点记录，<code>2</code>表示最小记录，<code>3</code>表示最大记录。</li>
+<li><code>next_record</code><br>它表示<span style="color:red">从当前记录的真实数据到下一条记录的真实数据的地址偏移量</span>。</li>
+</ul>
+<h4 id="记录的真实数据"><a href="#记录的真实数据" class="headerlink" title="记录的真实数据"></a>记录的真实数据</h4><p>对于<code>record_format_demo</code>表来说，<code>记录的真实数据</code>除了<code>c1</code>、<code>c2</code>、<code>c3</code>、<code>c4</code>这几个我们自己定义的列的数据以外，<code>MySQL</code>会为每个记录默认的添加一些列（也称为<code>隐藏列</code>），具体的列如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">列名</th>
+<th align="center">真实列名</th>
+<th align="center">是否必须</th>
+<th align="center">占用空间</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>row_id</code></td>
+<td align="center">DB_ROW_ID</td>
+<td align="center">否</td>
+<td align="center"><code>6</code>字节</td>
+<td align="center">行ID，唯一标识一条记录</td>
+</tr>
+<tr>
+<td align="center"><code>transaction_id</code></td>
+<td align="center">DB_TRX_ID</td>
+<td align="center">是</td>
+<td align="center"><code>6</code>字节</td>
+<td align="center">事务ID</td>
+</tr>
+<tr>
+<td align="center"><code>roll_pointer</code></td>
+<td align="center">DB_ROLL_PTR</td>
+<td align="center">是</td>
+<td align="center"><code>7</code>字节</td>
+<td align="center">回滚指针</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>InnoDB</code>表对主键的生成策略:</p>
+<p>优先使用用户自定义主键作为主键，如果用户没有定义主键，则选取一个<code>Unique</code>键作为主键，如果表中连<code>Unique</code>键都没有定义的话，则<code>InnoDB</code>会为表默认添加一个名为<code>row_id</code>的隐藏列作为主键。所以我们从上表中可以看出：<span style="color:red">InnoDB存储引擎会为每条记录都添加 <em><strong>transaction_id</strong></em> 和 <em><strong>roll_pointer</strong></em> 这两个列，但是 <em><strong>row_id</strong></em> 是可选的（在没有自定义主键以及Unique键的情况下才会添加该列）</span>。这些隐藏列的值不用我们操心，<code>InnoDB</code>存储引擎会自己帮我们生成的。</p>
+</blockquote>
+<p>因为表<code>record_format_demo</code>并没有定义主键，所以<code>MySQL</code>服务器会为每条记录增加上述的3个列。现在看一下加上<code>记录的真实数据</code>的两个记录长什么样吧：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291661.png"></p>
+<p>看这个图的时候我们需要注意几点：</p>
+<ol>
+<li>表<code>record_format_demo</code>使用的是<code>ascii</code>字符集，所以<code>0x61616161</code>就表示字符串<code>&#39;aaaa&#39;</code>，<code>0x626262</code>就表示字符串<code>&#39;bbb&#39;</code>，以此类推。</li>
+<li>注意第1条记录中<code>c3</code>列的值，它是<code>CHAR(10)</code>类型的，它实际存储的字符串是：<code>&#39;cc&#39;</code>，而<code>ascii</code>字符集中的字节表示是<code>&#39;0x6363&#39;</code>，虽然表示这个字符串只占用了2个字节，但整个<code>c3</code>列仍然占用了10个字节的空间，除真实数据以外的8个字节的统统都用<span style="color:red">空格字符</span>填充，空格字符在<code>ascii</code>字符集的表示就是<code>0x20</code>。</li>
+<li>注意第2条记录中<code>c3</code>和<code>c4</code>列的值都为<code>NULL</code>，它们被存储在了前边的<code>NULL值列表</code>处，在记录的真实数据处就不再冗余存储，从而节省存储空间。</li>
+</ol>
+<h5 id="CHAR-M-列的存储格式"><a href="#CHAR-M-列的存储格式" class="headerlink" title="CHAR(M)列的存储格式"></a>CHAR(M)列的存储格式</h5><p>对于 <em><strong>CHAR(M)</strong></em> 类型的列来说，当列采用的是定长字符集时，该列占用的字节数不会被加到变长字段长度列表，而如果采用变长字符集时，该列占用的字节数也会被加到变长字段长度列表。另外有一点还需要注意，变长字符集的<code>CHAR(M)</code>类型的列要求至少占用<code>M</code>个字节，而<code>VARCHAR(M)</code>却没有这个要求。比方说对于使用<code>utf8</code>字符集的<code>CHAR(10)</code>的列来说，该列存储的数据字节长度的范围是10～30个字节。即使我们向该列中存储一个空字符串也会占用<code>10</code>个字节，这是怕将来更新该列的值的字节长度大于原有值的字节长度而小于10个字节时，可以在该记录处直接更新，而不是在存储空间中重新分配一个新的记录空间，导致原有的记录空间成为所谓的碎片。</p>
+<h3 id="Redundant行格式"><a href="#Redundant行格式" class="headerlink" title="Redundant行格式"></a>Redundant行格式</h3><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291662.png"></p>
+<p><code>Redundant</code>行格式是<code>MySQL5.0</code>之前用的一种行格式，它已经非常老了，看图就可以了，不用了解细节。</p>
+<h3 id="行溢出数据"><a href="#行溢出数据" class="headerlink" title="行溢出数据"></a>行溢出数据</h3><h4 id="VARCHAR-M-最多能存储的数据"><a href="#VARCHAR-M-最多能存储的数据" class="headerlink" title="VARCHAR(M)最多能存储的数据"></a>VARCHAR(M)最多能存储的数据</h4><p>对于<code>VARCHAR(M)</code>类型的列最多可以占用<code>65535</code>个字节。其中的<code>M</code>代表该类型最多存储的字符数量，如果我们使用<code>ascii</code>字符集的话，一个字符就代表一个字节。看看<code>VARCHAR(65535)</code>是否可用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;     c VARCHAR(65535)</span><br><span class="line">    -&gt; ) CHARSET=ascii ROW_FORMAT=Compact;</span><br><span class="line">ERROR 1118 (42000): Row size too large. The maximum row size for the used table type, not counting BLOBs, is 65535. This includes storage overhead, check the manual. You have to change some columns to TEXT or BLOBs</span><br><span class="line">mysql&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>MySQL</code>对一条记录占用的最大存储空间是有限制的，除了<code>BLOB</code>或者<code>TEXT</code>类型的列之外，其他所有的列（不包括隐藏列和记录头信息）占用的字节长度加起来不能超过<code>65535</code>个字节。所以<code>MySQL</code>服务器建议我们把存储类型改为<code>TEXT</code>或者<code>BLOB</code>的类型。这个<code>65535</code>个字节除了列本身的数据之外，还包括一些其他的数据（<code>storage overhead</code>），比如说我们为了存储一个<code>VARCHAR(M)</code>类型的列，其实需要占用3部分存储空间：</p>
+<ul>
+<li>真实数据</li>
+<li>真实数据占用字节的长度</li>
+<li><code>NULL</code>值标识，如果该列有<code>NOT NULL</code>属性则可以没有这部分存储空间</li>
+</ul>
+<p>如果该<code>VARCHAR</code>类型的列没有<code>NOT NULL</code>属性，那最多只能存储<code>65532</code>个字节的数据，因为真实数据的长度可能占用2个字节，<code>NULL</code>值标识需要占用1个字节：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;      c VARCHAR(65532)</span><br><span class="line">    -&gt; ) CHARSET=ascii ROW_FORMAT=Compact;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>VARCHAR</code>类型的列有<code>NOT NULL</code>属性，那最多只能存储<code>65533</code>个字节的数据，因为真实数据的长度可能占用2个字节，不需要<code>NULL</code>值标识：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; DROP TABLE varchar_size_demo;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;      c VARCHAR(65533) NOT NULL</span><br><span class="line">    -&gt; ) CHARSET=ascii ROW_FORMAT=Compact;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br></pre></td></tr></table></figure>
+
+<p>如果<code>VARCHAR(M)</code>类型的列使用的不是<code>ascii</code>字符集，那会怎么样呢？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; DROP TABLE varchar_size_demo;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;       c VARCHAR(65532)</span><br><span class="line">    -&gt; ) CHARSET=gbk ROW_FORMAT=Compact;</span><br><span class="line">ERROR 1074 (42000): Column length too big for column &#x27;c&#x27; (max = 32767); use BLOB or TEXT instead</span><br><span class="line"></span><br><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;       c VARCHAR(65532)</span><br><span class="line">    -&gt; ) CHARSET=utf8 ROW_FORMAT=Compact;</span><br><span class="line">ERROR 1074 (42000): Column length too big for column &#x27;c&#x27; (max = 21845); use BLOB or TEXT instead</span><br></pre></td></tr></table></figure>
+
+<p>从执行结果中可以看出，如果<code>VARCHAR(M)</code>类型的列使用的不是<code>ascii</code>字符集，那<code>M</code>的最大取值取决于该字符集表示一个字符最多需要的字节数。在列的值允许为<code>NULL</code>的情况下，<code>gbk</code>字符集表示一个字符最多需要<code>2</code>个字节，那在该字符集下，<code>M</code>的最大取值就是<code>32766</code>（也就是：65532&#x2F;2），也就是说最多能存储<code>32766</code>个字符；<code>utf8</code>字符集表示一个字符最多需要<code>3</code>个字节，那在该字符集下，<code>M</code>的最大取值就是<code>21844</code>，就是说最多能存储<code>21844</code>（也就是：65532&#x2F;3）个字符。</p>
+<blockquote>
+<p>上述所言在列的值允许为NULL的情况下，gbk字符集下M的最大取值就是32766，utf8字符集下M的最大取值就是21844，这都是在表中只有一个字段的情况下说的，一定要记住一个行中的所有列（不包括隐藏列和记录头信息）占用的字节长度加起来不能超过65535个字节！</p>
+</blockquote>
+<h4 id="记录中的数据太多产生的溢出"><a href="#记录中的数据太多产生的溢出" class="headerlink" title="记录中的数据太多产生的溢出"></a>记录中的数据太多产生的溢出</h4><p>以<code>ascii</code>字符集下的<code>varchar_size_demo</code>表为例，插入一条记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE varchar_size_demo(</span><br><span class="line">    -&gt;       c VARCHAR(65532)</span><br><span class="line">    -&gt; ) CHARSET=ascii ROW_FORMAT=Compact;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; INSERT INTO varchar_size_demo(c) VALUES(REPEAT(&#x27;a&#x27;, 65532));</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<p>其中的<code>REPEAT(&#39;a&#39;, 65532)</code>是一个函数调用，它表示生成一个把字符<code>&#39;a&#39;</code>重复<code>65532</code>次的字符串。前边说过，<code>MySQL</code>中磁盘和内存交互的基本单位是<code>页</code>，也就是说<code>MySQL</code>是以<code>页</code>为基本单位来管理存储空间的，我们的记录都会被分配到某个<code>页</code>中存储。而一个页的大小一般是<code>16KB</code>，也就是<code>16384</code>字节，而一个<code>VARCHAR(M)</code>类型的列就最多可以存储<code>65532</code>个字节，这样就可能造成一个页存放不了一条记录的情况。</p>
+<p>在<code>Compact</code>和<code>Reduntant</code>行格式中，对于占用存储空间非常大的列，在<code>记录的真实数据</code>处只会存储该列的一部分数据，把剩余的数据分散存储在几个其他的页中，然后<code>记录的真实数据</code>处用20个字节存储指向这些页的地址（当然这20个字节中还包括这些分散在其他页面中的数据的占用的字节数），从而可以找到剩余数据所在的页，如图所示：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291663.png"></p>
+<p>从图中可以看出来，对于<code>Compact</code>和<code>Reduntant</code>行格式来说，如果某一列中的数据非常多的话，在本记录的真实数据处只会存储该列的前<code>768</code>个字节的数据和一个指向其他页的地址，然后把剩下的数据存放到其他页中，这个过程也叫做<code>行溢出</code>，存储超出<code>768</code>字节的那些页面也被称为<code>溢出页</code>。画一个简图就是这样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291664.png"></p>
+<p>最后需要注意的是，<span style="color:red">不只是 <em><strong>VARCHAR(M)</strong></em> 类型的列，其他的 <em><strong>TEXT</strong></em>、<em><strong>BLOB</strong></em> 类型的列在存储数据非常多的时候也会发生<code>行溢出</code></span>。</p>
+<h3 id="Dynamic和Compressed行格式"><a href="#Dynamic和Compressed行格式" class="headerlink" title="Dynamic和Compressed行格式"></a>Dynamic和Compressed行格式</h3><p><code>MySQL5.7</code>它的默认行格式就是<code>Dynamic</code>，这俩行格式和<code>Compact</code>行格式挺像，只不过在处理<code>行溢出</code>数据时有点儿分歧，它们不会在记录的真实数据处存储字段真实数据的前<code>768</code>个字节，而是把所有的字节都存储到其他页面中，只在记录的真实数据处存储其他页面的地址，就像这样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291665.png"></p>
+<p><code>Compressed</code>行格式和<code>Dynamic</code>不同的一点是，<code>Compressed</code>行格式会采用压缩算法对页面进行压缩，以节省空间。</p>
+<h2 id="InnoDB数据页结构"><a href="#InnoDB数据页结构" class="headerlink" title="InnoDB数据页结构"></a>InnoDB数据页结构</h2><p><code>InnoDB</code>是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启我们的数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中。<code>InnoDB</code>采取的方式是：<span style="color:red">将数据划分为若干个页，以页作为磁盘和内存之间交互的基本单位，InnoDB中页的大小一般为 <em><strong>16</strong></em> KB</span>。也就是在一般情况下，一次最少从磁盘中读取16KB的内容到内存中，一次最少把内存中的16KB内容刷新到磁盘中。</p>
+<p><code>InnoDB</code>为了不同的目的而设计了许多种不同类型的<code>页</code>，比如存放表空间头部信息的页，存放<code>Insert Buffer</code>信息的页，存放<code>INODE</code>信息的页，存放<code>undo</code>日志信息的页，存放数据的索引页(<code>数据页</code>)。</p>
+<h3 id="数据页结构的快速浏览"><a href="#数据页结构的快速浏览" class="headerlink" title="数据页结构的快速浏览"></a>数据页结构的快速浏览</h3><p>数据页代表的这块<code>16KB</code>大小的存储空间可以被划分为多个部分，不同部分有不同的功能，各个部分如图所示：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291666.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">中文名</th>
+<th align="center">占用空间大小</th>
+<th align="center">简单描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>File Header</code></td>
+<td align="center">文件头部</td>
+<td align="center"><code>38</code>字节</td>
+<td align="center">页的一些通用信息</td>
+</tr>
+<tr>
+<td align="center"><code>Page Header</code></td>
+<td align="center">页面头部</td>
+<td align="center"><code>56</code>字节</td>
+<td align="center">数据页专有的一些信息</td>
+</tr>
+<tr>
+<td align="center"><code>Infimum + Supremum</code></td>
+<td align="center">最小记录和最大记录</td>
+<td align="center"><code>26</code>字节</td>
+<td align="center">两个虚拟的行记录</td>
+</tr>
+<tr>
+<td align="center"><code>User Records</code></td>
+<td align="center">用户记录</td>
+<td align="center">不确定</td>
+<td align="center">实际存储的行记录内容</td>
+</tr>
+<tr>
+<td align="center"><code>Free Space</code></td>
+<td align="center">空闲空间</td>
+<td align="center">不确定</td>
+<td align="center">页中尚未使用的空间</td>
+</tr>
+<tr>
+<td align="center"><code>Page Directory</code></td>
+<td align="center">页面目录</td>
+<td align="center">不确定</td>
+<td align="center">页中的某些记录的相对位置</td>
+</tr>
+<tr>
+<td align="center"><code>File Trailer</code></td>
+<td align="center">文件尾部</td>
+<td align="center"><code>8</code>字节</td>
+<td align="center">校验页是否完整</td>
+</tr>
+</tbody></table>
+<h3 id="记录在页中的存储"><a href="#记录在页中的存储" class="headerlink" title="记录在页中的存储"></a>记录在页中的存储</h3><p>在页的7个组成部分中，我们自己存储的记录会按照我们指定的<code>行格式</code>存储到<code>User Records</code>部分。但是在一开始生成页的时候，其实并没有<code>User Records</code>这个部分，每当我们插入一条记录，都会从<code>Free Space</code>部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到<code>User Records</code>部分，当<code>Free Space</code>部分的空间全部被<code>User Records</code>部分替代掉之后，也就意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291667.png" alt="img"></p>
+<p><a href="#%E8%AE%B0%E5%BD%95%E5%A4%B4%E4%BF%A1%E6%81%AF">记录头信息</a></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> page_demo(</span><br><span class="line">    c1 <span class="type">INT</span>,</span><br><span class="line">    c2 <span class="type">INT</span>,</span><br><span class="line">    c3 <span class="type">VARCHAR</span>(<span class="number">10000</span>),</span><br><span class="line">    <span class="keyword">PRIMARY</span> KEY (c1)</span><br><span class="line">) CHARSET<span class="operator">=</span>ascii ROW_FORMAT<span class="operator">=</span>Compact;</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> page_demo <span class="keyword">VALUES</span>(<span class="number">1</span>, <span class="number">100</span>, <span class="string">&#x27;aaaa&#x27;</span>), (<span class="number">2</span>, <span class="number">200</span>, <span class="string">&#x27;bbbb&#x27;</span>), (<span class="number">3</span>, <span class="number">300</span>, <span class="string">&#x27;cccc&#x27;</span>), (<span class="number">4</span>, <span class="number">400</span>, <span class="string">&#x27;dddd&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>执行完上述语句后，支持该表的数据页可以用下图表示:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291668.png" alt="img"></p>
+<p>从图中可以看出来，<span style="color:red">我们的记录按照主键从小到大的顺序形成了一个单链表, Infimum记录（也就是最小记录）的下一条记录就是本页中主键值最小的用户记录</span>。<code>最大记录</code>的<code>next_record</code>的值为<code>0</code>，这也就是说最大记录是没有<code>下一条记录</code>了，它是这个单链表中的最后一个节点。</p>
+<p>如果从中删除掉一条记录，这个链表也是会跟着变化的，比如我们把第2条记录删掉：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> page_demo <span class="keyword">WHERE</span> c1 <span class="operator">=</span> <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291669.png" alt="img"></p>
+<p><span style="color:red">不论我们怎么对页中的记录做增删改操作，InnoDB始终会维护一条记录的单链表，链表中的各个节点是按照主键值由小到大的顺序连接起来的</span>。</p>
+<blockquote>
+<p>你会不会觉得next_record这个指针有点儿怪，为啥要指向记录头信息和真实数据之间的位置呢？为啥不干脆指向整条记录的开头位置，也就是记录的额外信息开头的位置呢？</p>
+<p>因为这个位置刚刚好，向左读取就是记录头信息，向右读取就是真实数据。我们前边还说过变长字段长度列表、NULL值列表中的信息都是逆序存放，这样可以使记录中位置靠前的字段和它们对应的字段长度信息在内存中的距离更近，可能会提高高速缓存的命中率。</p>
+</blockquote>
+<p>主键值为<code>2</code>的记录被我们删掉了，但是存储空间却没有回收，如果我们再次把这条记录插入到表中，<code>InnoDB</code>不会再去申请存储空间，而是直接复用了原来被删除记录的存储空间。</p>
+<blockquote>
+<p>当数据页中存在多条被删除掉的记录时，这些记录的next_record属性将会把这些被删除掉的记录组成一个垃圾链表，以备之后重用这部分存储空间。</p>
+</blockquote>
+<h3 id="Page-Directory（页目录）"><a href="#Page-Directory（页目录）" class="headerlink" title="Page Directory（页目录）"></a>Page Directory（页目录）</h3><p>我们平常想从一本书中查找某个内容的时候，一般会先看目录，找到需要查找的内容对应的书的页码，然后到对应的页码查看内容。而<code>InnoDB</code>中的页也有一个类似的目录，该目录就是页目录，创建过程如下：</p>
+<ol>
+<li><p>将所有正常的记录（包括最大和最小记录，不包括标记为已删除的记录）划分为几个组。</p>
+</li>
+<li><p>每个组的最后一条记录（也就是组内最大的那条记录）的头信息中的<font color="red"><code>n_owned</code>属性表示该记录拥有多少条记录，也就是该组内共有几条记录。</font></p>
+</li>
+<li><p>将每个组的最后一条记录的地址偏移量单独提取出来按顺序存储到靠近<code>页</code>的尾部的地方，这个地方就是所谓的<code>Page Directory</code>，也就是<code>页目录</code>（此时应该返回头看看页面各个部分的图）。页面目录中的这些地址偏移量被称为<code>槽</code>（英文名：<code>Slot</code>），所以这个页面目录就是由<code>槽</code>组成的。</p>
+</li>
+</ol>
+<p>比方说现在的<code>page_demo</code>表中正常的记录共有6条，<code>InnoDB</code>会把它们分成两组，第一组中只有一个最小记录，第二组中是剩余的5条记录，看下边的示意图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291670.png" alt="img"></p>
+<p>从<span style="color:red">逻辑上</span>看一下这些记录和页目录的关系：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291671.png" alt="img"></p>
+<ul>
+<li><p>现在<code>页目录</code>部分中有两个槽，也就意味着我们的记录被分成了两个组，<code>槽1</code>中的值是<code>112</code>，代表最大记录的地址偏移量（就是从页面的0字节开始数，数112个字节）；<code>槽0</code>中的值是<code>99</code>，代表最小记录的地址偏移量。</p>
+</li>
+<li><p>注意最小和最大记录的头信息中的<code>n_owned</code>属性</p>
+<ul>
+<li>最小记录的<code>n_owned</code>值为<code>1</code>，这就代表着以最小记录结尾的这个分组中只有<code>1</code>条记录，也就是最小记录本身。</li>
+<li>最大记录的<code>n_owned</code>值为<code>5</code>，这就代表着以最大记录结尾的这个分组中只有<code>5</code>条记录，包括最大记录本身还有我们自己插入的<code>4</code>条记录。</li>
+</ul>
+</li>
+</ul>
+<p><code>InnoDB</code>对每个分组中的记录条数是有规定的：<span style="color:red">对于最小记录所在的分组只能有 <em><strong>1</strong></em> 条记录，最大记录所在的分组拥有的记录条数只能在 <em><strong>1~8</strong></em> 条之间，剩下的分组中记录的条数范围只能在是 <em><strong>4~8</strong></em> 条之间</span></p>
+<ul>
+<li>初始情况下一个数据页里只有最小记录和最大记录两条记录，它们分属于两个分组。</li>
+<li>之后每插入一条记录，都会从<code>页目录</code>中找到主键值比本记录的主键值大并且差值最小的槽，然后把该槽对应的记录的<code>n_owned</code>值加1，表示本组内又添加了一条记录，直到该组中的记录数等于8个。</li>
+<li>在一个组中的记录数等于8个后再插入一条记录时，会将组中的记录拆分成两个组，一个组中4条记录(新的组)，另一个5条记录。这个过程会在<code>页目录</code>中新增一个<code>槽</code>来记录这个新增分组中最大的那条记录的偏移量。</li>
+</ul>
+<p>在一个数据页中查找指定主键值的记录的过程分为两步：</p>
+<ol>
+<li>各个槽代表的记录的主键值都是从小到大排序的，所以可以用<code>二分法</code>来确定该记录所在的槽，并找到该槽中主键值最小的那条记录。</li>
+<li>通过记录的<code>next_record</code>属性遍历该槽所在的组中的各个记录</li>
+</ol>
+<p>比如插入一些数据后，页结构入下图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291672.png" alt="img"></p>
+<p>初始情况下最低的槽就是<code>low=0</code>，最高的槽就是<code>high=4</code>。比方说我们想找主键值为<code>6</code>的记录，过程是这样的：</p>
+<ol>
+<li>计算中间槽的位置：<code>(0+4)/2=2</code>，所以查看<code>槽2</code>对应记录的主键值为<code>8</code>，又因为<code>8 &gt; 6</code>，所以设置<code>high=2</code>，<code>low</code>保持不变。</li>
+<li>重新计算中间槽的位置：<code>(0+2)/2=1</code>，所以查看<code>槽1</code>对应的主键值为<code>4</code>，又因为<code>4 &lt; 6</code>，所以设置<code>low=1</code>，<code>high</code>保持不变。</li>
+<li>因为<code>high - low</code>的值为1，所以确定主键值为<code>6</code>的记录在<code>槽2</code>对应的组中。此刻我们需要找到<code>槽2</code>中主键值最小的那条记录，然后沿着单向链表遍历<code>槽2</code>中的记录。但是我们前边又说过，每个槽对应的记录都是该组中主键值最大的记录，这里<code>槽2</code>对应的记录是主键值为<code>8</code>的记录，怎么定位一个组中最小的记录呢？别忘了各个槽都是挨着的，我们可以很轻易的拿到<code>槽1</code>对应的记录（主键值为<code>4</code>），该条记录的下一条记录就是<code>槽2</code>中主键值最小的记录，该记录的主键值为<code>5</code>。所以我们可以从这条主键值为<code>5</code>的记录出发，遍历<code>槽2</code>中的各条记录，直到找到主键值为<code>6</code>的那条记录即可。由于一个组中包含的记录条数只能是1~8条，所以遍历一个组中的记录的代价是很小的。</li>
+</ol>
+<p>所以在一个数据页中查找指定主键值的记录的过程分为两步：</p>
+<ol>
+<li><p><span style="color:red">通过二分法确定该记录所在的槽，并找到该槽中主键值最小的那条记录</span>。</p>
+</li>
+<li><p><span style="color:red">通过记录的<code>next_record</code>属性遍历该槽所在的组中的各个记录</span>。</p>
+</li>
+</ol>
+<h3 id="Page-Header（页面头部）"><a href="#Page-Header（页面头部）" class="headerlink" title="Page Header（页面头部）"></a>Page Header（页面头部）</h3><p>为了能得到一个数据页中存储的记录的状态信息，比如本页中已经存储了多少条记录，第一条记录的地址是什么，页目录中存储了多少个槽等等，特意在页中定义了一个叫<code>Page Header</code>的部分，它是<code>页</code>结构的第二部分，这个部分占用固定的<code>56</code>个字节，专门存储各种状态信息，具体各个字节都是干嘛的看下表：</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">占用空间大小</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>PAGE_N_DIR_SLOTS</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">在页目录中的槽数量</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_HEAP_TOP</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">还未使用的空间最小地址，也就是说从该地址之后就是<code>Free Space</code></td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_N_HEAP</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">本页中的记录的数量（包括最小和最大记录以及标记为删除的记录）</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_FREE</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">第一个已经标记为删除的记录地址（各个已删除的记录通过<code>next_record</code>也会组成一个单链表，这个单链表中的记录可以被重新利用）</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_GARBAGE</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">已删除记录占用的字节数</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_LAST_INSERT</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">最后插入记录的位置</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_DIRECTION</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">记录插入的方向<br />假如新插入的一条记录的主键值比上一条记录的主键值大，我们说这条记录的插入方向是右边，反之则是左边。用来表示最后一条记录插入方向的状态就是<code>PAGE_DIRECTION</code>。</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_N_DIRECTION</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">一个方向连续插入的记录数量<br />假设连续几次插入新记录的方向都是一致的，<code>InnoDB</code>会把沿着同一个方向插入记录的条数记下来，这个条数就用<code>PAGE_N_DIRECTION</code>这个状态表示。当然，如果最后一条记录的插入方向改变了的话，这个状态的值会被清零重新统计。</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_N_RECS</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">该页中记录的数量（不包括最小和最大记录以及被标记为删除的记录）</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_MAX_TRX_ID</code></td>
+<td align="center"><code>8</code>字节</td>
+<td align="left">修改当前页的最大事务ID，该值仅在二级索引中定义</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_LEVEL</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="left">当前页在B+树中所处的层级</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_INDEX_ID</code></td>
+<td align="center"><code>8</code>字节</td>
+<td align="left">索引ID，表示当前页属于哪个索引</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_BTR_SEG_LEAF</code></td>
+<td align="center"><code>10</code>字节</td>
+<td align="left">B+树叶子段的头部信息，仅在B+树的Root页定义</td>
+</tr>
+<tr>
+<td align="center"><code>PAGE_BTR_SEG_TOP</code></td>
+<td align="center"><code>10</code>字节</td>
+<td align="left">B+树非叶子段的头部信息，仅在B+树的Root页定义</td>
+</tr>
+</tbody></table>
+<h3 id="File-Header（文件头部）"><a href="#File-Header（文件头部）" class="headerlink" title="File Header（文件头部）"></a>File Header（文件头部）</h3><p>它描述了一些针对各种页都通用的一些信息，比方说这个页的编号是多少，它的上一个页、下一个页是谁等等，这个部分占用固定的<code>38</code>个字节，是由下边这些内容组成的：</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">占用空间大小</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>FIL_PAGE_SPACE_OR_CHKSUM</code></td>
+<td align="center"><code>4</code>字节</td>
+<td align="center">页的校验和（checksum值）</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_OFFSET</code></td>
+<td align="center"><code>4</code>字节</td>
+<td align="center">页号</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_PREV</code></td>
+<td align="center"><code>4</code>字节</td>
+<td align="center">上一个页的页号</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_NEXT</code></td>
+<td align="center"><code>4</code>字节</td>
+<td align="center">下一个页的页号</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_LSN</code></td>
+<td align="center"><code>8</code>字节</td>
+<td align="center">页面被最后修改时对应的日志序列位置（英文名是：Log Sequence Number）</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE</code></td>
+<td align="center"><code>2</code>字节</td>
+<td align="center">该页的类型</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_FILE_FLUSH_LSN</code></td>
+<td align="center"><code>8</code>字节</td>
+<td align="center">仅在系统表空间的一个页中定义，代表文件至少被刷新到了对应的LSN值</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_ARCH_LOG_NO_OR_SPACE_ID</code></td>
+<td align="center"><code>4</code>字节</td>
+<td align="center">页属于哪个表空间</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p><code>FIL_PAGE_SPACE_OR_CHKSUM</code><br>这个代表当前页面的校验和（checksum）。啥是个校验和？就是对于一个很长很长的字节串来说，我们会通过某种算法来计算一个比较短的值来代表这个很长的字节串，这个比较短的值就称为<code>校验和</code>。这样在比较两个很长的字节串之前先比较这两个长字节串的校验和，如果校验和都不一样两个长字节串肯定是不同的，所以省去了直接比较两个比较长的字节串的时间损耗。</p>
+</li>
+<li><p><code>FIL_PAGE_OFFSET</code></p>
+<p>每一个<code>页</code>都有一个单独的页号，就跟你的身份证号码一样，<code>InnoDB</code>通过页号来可以唯一定位一个<code>页</code>。</p>
+</li>
+<li><p><code>FIL_PAGE_TYPE</code></p>
+<p>这个代表当前<code>页</code>的类型，我们前边说过，<code>InnoDB</code>为了不同的目的而把页分为不同的类型，我们上边介绍的其实都是存储记录的<code>数据页</code>，其实还有很多别的类型的页，具体如下表：</p>
+<table>
+<thead>
+<tr>
+<th align="center">类型名称</th>
+<th align="center">十六进制</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>FIL_PAGE_TYPE_ALLOCATED</code></td>
+<td align="center">0x0000</td>
+<td align="center">最新分配，还没使用</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_UNDO_LOG</code></td>
+<td align="center">0x0002</td>
+<td align="center">Undo日志页</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_INODE</code></td>
+<td align="center">0x0003</td>
+<td align="center">段信息节点</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_IBUF_FREE_LIST</code></td>
+<td align="center">0x0004</td>
+<td align="center">Insert Buffer空闲列表</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_IBUF_BITMAP</code></td>
+<td align="center">0x0005</td>
+<td align="center">Insert Buffer位图</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE_SYS</code></td>
+<td align="center">0x0006</td>
+<td align="center">系统页</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE_TRX_SYS</code></td>
+<td align="center">0x0007</td>
+<td align="center">事务系统数据</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE_FSP_HDR</code></td>
+<td align="center">0x0008</td>
+<td align="center">表空间头部信息</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE_XDES</code></td>
+<td align="center">0x0009</td>
+<td align="center">扩展描述页</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_TYPE_BLOB</code></td>
+<td align="center">0x000A</td>
+<td align="center">BLOB页</td>
+</tr>
+<tr>
+<td align="center"><code>FIL_PAGE_INDEX</code></td>
+<td align="center">0x45BF</td>
+<td align="center">索引页，也就是我们所说的<code>数据页</code></td>
+</tr>
+</tbody></table>
+<ul>
+<li>表空间中的每一个页都对应着一个页号，也就是<code>FIL_PAGE_OFFSET</code>，这个页号由4个字节组成，也就是32个比特位，所以一个表空间最多可以拥有2³²个页，如果按照页的默认大小16KB来算，一个表空间最多支持64TB的数据。表空间的第一个页的页号为0，之后的页号分别是1，2，3…依此类推</li>
+<li>某些类型的页可以组成链表，链表中的页可以不按照物理顺序存储，而是根据<code>FIL_PAGE_PREV</code>和<code>FIL_PAGE_NEXT</code>来存储上一个页和下一个页的页号。需要注意的是，这两个字段主要是为了<code>INDEX</code>类型的页，也就是我们之前一直说的数据页建立<code>B+</code>树后，为每层节点建立双向链表用的，一般类型的页是不使用这两个字段的。</li>
+<li>每个页的类型由<code>FIL_PAGE_TYPE</code>表示</li>
+</ul>
+</li>
+<li><p><code>FIL_PAGE_PREV</code>和<code>FIL_PAGE_NEXT</code><br>我们前边强调过，<code>InnoDB</code>都是以页为单位存放数据的，有时候我们存放某种类型的数据占用的空间非常大（比方说一张表中可以有成千上万条记录），<code>InnoDB</code>可能不可以一次性为这么多数据分配一个非常大的存储空间，如果分散到多个不连续的页中存储的话需要把这些页关联起来，<code>FIL_PAGE_PREV</code>和<code>FIL_PAGE_NEXT</code>就分别代表本页的上一个和下一个页的页号。这样通过建立一个双向链表把许许多多的页就都串联起来了，而无需这些页在物理上真正连着。需要注意的是，<span style="color:red">并不是所有类型的页都有上一个和下一个页的属性</span>，不过我们本集中唠叨的<code>数据页</code>（也就是类型为<code>FIL_PAGE_INDEX</code>的页）是有这两个属性的，所以所有的数据页其实是一个双链表，就像这样：<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291673.png" alt="img"></p>
+</li>
+</ul>
+<h3 id="File-Trailer"><a href="#File-Trailer" class="headerlink" title="File Trailer"></a>File Trailer</h3><p>我们知道<code>InnoDB</code>存储引擎会把数据存储到磁盘上，但是磁盘速度太慢，需要以<code>页</code>为单位把数据加载到内存中处理，如果该页中的数据在内存中被修改了，那么在修改后的某个时间需要把数据<span style="color:red">同步</span>到磁盘中。但是在同步了一半的时候中断电了怎么办？为了检测一个页是否完整（也就是在同步的时候有没有发生只同步一半的尴尬情况），设计<code>InnoDB</code>的大叔们在每个页的尾部都加了一个<code>File Trailer</code>部分，这个部分由<code>8</code>个字节组成，可以分成2个小部分：</p>
+<ul>
+<li><p>前4个字节代表页的校验和</p>
+<p>这个部分是和<code>File Header</code>中的校验和相对应的。每当一个页面在内存中修改了，在同步之前就要把它的校验和算出来，因为<code>File Header</code>在页面的前边，所以校验和会被首先同步到磁盘，当完全写完时，校验和也会被写到页的尾部，如果完全同步成功，则页的首部和尾部的校验和应该是一致的。如果写了一半儿断电了，那么在<code>File Header</code>中的校验和就代表着已经修改过的页，而在<code>File Trialer</code>中的校验和代表着原先的页，二者不同则意味着同步中间出了错。这时通过redo日志是无法恢复的，因为redo日志只记录了对页的的某行修改的记录，而现在是刷回磁盘时，部分数据丢失了，这时就需要依赖[两次写](.&#x2F;14-InnoDB 的 Buffer Pool#两次写——Doublewrite Buffer)机制了。</p>
+</li>
+<li><p>后4个字节代表页面被最后修改时对应的日志序列位置（LSN）</p>
+<p>这个部分也是为了校验页的完整性的，只不过我们目前还没说<code>LSN</code>是个什么意思，所以大家可以先不用管这个属性。</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>页和记录的关系示意图如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291674.png" alt="16a01bd1b8eafbb4"></p>
+<p><code>INDEX</code>类型的页由7个部分组成，其中的两个部分是所有类型的页面都通用的</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/mysql/4702002116123291675.png" alt="img"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/mysql/02-InnoDB%E7%BB%93%E6%9E%84/">https://nbobj.github.io/blog/mysql/02-InnoDB结构/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/mysql/">mysql</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/mysql/03-B+%E6%A0%91%E7%B4%A2%E5%BC%95/">03-B+树索引</a><a class="next" href="/blog/mysql/01-%E5%AD%97%E7%AC%A6%E9%9B%86%E5%92%8C%E6%AF%94%E8%BE%83%E8%A7%84%E5%88%99/">01-字符集和比较规则</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B5%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">页简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#InnoDB%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">InnoDB行格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#COMPACT%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">COMPACT行格式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E7%9A%84%E9%A2%9D%E5%A4%96%E4%BF%A1%E6%81%AF"><span class="toc-number">2.1.1.</span> <span class="toc-text">记录的额外信息</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8F%98%E9%95%BF%E5%AD%97%E6%AE%B5%E9%95%BF%E5%BA%A6%E5%88%97%E8%A1%A8"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">变长字段长度列表</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#NULL%E5%80%BC%E5%88%97%E8%A1%A8"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">NULL值列表</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E5%A4%B4%E4%BF%A1%E6%81%AF"><span class="toc-number">2.1.1.3.</span> <span class="toc-text">记录头信息</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E7%9A%84%E7%9C%9F%E5%AE%9E%E6%95%B0%E6%8D%AE"><span class="toc-number">2.1.2.</span> <span class="toc-text">记录的真实数据</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CHAR-M-%E5%88%97%E7%9A%84%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.1.2.1.</span> <span class="toc-text">CHAR(M)列的存储格式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redundant%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.2.</span> <span class="toc-text">Redundant行格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E6%BA%A2%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="toc-number">2.3.</span> <span class="toc-text">行溢出数据</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#VARCHAR-M-%E6%9C%80%E5%A4%9A%E8%83%BD%E5%AD%98%E5%82%A8%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="toc-number">2.3.1.</span> <span class="toc-text">VARCHAR(M)最多能存储的数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E5%A4%AA%E5%A4%9A%E4%BA%A7%E7%94%9F%E7%9A%84%E6%BA%A2%E5%87%BA"><span class="toc-number">2.3.2.</span> <span class="toc-text">记录中的数据太多产生的溢出</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Dynamic%E5%92%8CCompressed%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.4.</span> <span class="toc-text">Dynamic和Compressed行格式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#InnoDB%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">InnoDB数据页结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84%E7%9A%84%E5%BF%AB%E9%80%9F%E6%B5%8F%E8%A7%88"><span class="toc-number">3.1.</span> <span class="toc-text">数据页结构的快速浏览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E5%9C%A8%E9%A1%B5%E4%B8%AD%E7%9A%84%E5%AD%98%E5%82%A8"><span class="toc-number">3.2.</span> <span class="toc-text">记录在页中的存储</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Page-Directory%EF%BC%88%E9%A1%B5%E7%9B%AE%E5%BD%95%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">Page Directory（页目录）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Page-Header%EF%BC%88%E9%A1%B5%E9%9D%A2%E5%A4%B4%E9%83%A8%EF%BC%89"><span class="toc-number">3.4.</span> <span class="toc-text">Page Header（页面头部）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#File-Header%EF%BC%88%E6%96%87%E4%BB%B6%E5%A4%B4%E9%83%A8%EF%BC%89"><span class="toc-number">3.5.</span> <span class="toc-text">File Header（文件头部）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#File-Trailer"><span class="toc-number">3.6.</span> <span class="toc-text">File Trailer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
