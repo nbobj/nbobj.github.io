@@ -1,0 +1,441 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>10-Spring AOP中的方法调用 | XYZhi's学习笔记</title><meta name="keywords" content="spring"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在前面讲过，代理对象有两种生成方式（如果被代理对象没接口就只能用cglib）  在之前的对getProxy的代码分析中，已经知道，createAopProxy最终有代理类  JdkDynamicAopProxy ObjenesisCglibAopProxy  JdkDynamicAopProxy在AOP解析已经了解代理对象的InvocationHandler就是JdkDynamicAopProxy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="10-Spring AOP中的方法调用">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/spring/10-Spring%20AOP%E4%B8%AD%E7%9A%84%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="在前面讲过，代理对象有两种生成方式（如果被代理对象没接口就只能用cglib）  在之前的对getProxy的代码分析中，已经知道，createAopProxy最终有代理类  JdkDynamicAopProxy ObjenesisCglibAopProxy  JdkDynamicAopProxy在AOP解析已经了解代理对象的InvocationHandler就是JdkDynamicAopProxy">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876373-d1304d.jpeg">
+<meta property="article:published_time" content="2021-11-25T12:00:16.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:55.162Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876373-d1304d.jpeg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/spring/10-Spring%20AOP%E4%B8%AD%E7%9A%84%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '10-Spring AOP中的方法调用',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876373-d1304d.jpeg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">10-Spring AOP中的方法调用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-25T12:00:16.000Z" title="发表于 2021-11-25 20:00:16">2021-11-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:55.162Z" title="更新于 2022-03-23 17:03:55">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/">开源框架</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="10-Spring AOP中的方法调用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>在前面讲过，代理对象有两种生成方式（如果被代理对象没接口就只能用cglib）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512275.png" alt="image-20210317173124352"></p>
+<p>在之前的对getProxy的代码分析中，已经知道，createAopProxy最终有代理类</p>
+<ul>
+<li>JdkDynamicAopProxy</li>
+<li>ObjenesisCglibAopProxy</li>
+</ul>
+<h2 id="JdkDynamicAopProxy"><a href="#JdkDynamicAopProxy" class="headerlink" title="JdkDynamicAopProxy"></a>JdkDynamicAopProxy</h2><p>在<a href="./09-Spring-AOP%E8%A7%A3%E6%9E%90">AOP解析</a>已经了解代理对象的InvocationHandler就是JdkDynamicAopProxy</p>
+<p>所以看invoke方法就行了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">	<span class="type">Object</span> <span class="variable">oldProxy</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">	<span class="type">boolean</span> <span class="variable">setProxyContext</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//从代理工厂中拿到TargetSource对象，该对象包装了被代理实例bean</span></span><br><span class="line">	<span class="type">TargetSource</span> <span class="variable">targetSource</span> <span class="operator">=</span> <span class="built_in">this</span>.advised.targetSource;</span><br><span class="line">	<span class="type">Object</span> <span class="variable">target</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="comment">//被代理对象的equals方法和hashCode方法是不能被代理的，不会走切面</span></span><br><span class="line">		<span class="keyword">if</span> (!<span class="built_in">this</span>.equalsDefined &amp;&amp; AopUtils.isEqualsMethod(method)) &#123;</span><br><span class="line">			<span class="comment">// The target does not implement the equals(Object) method itself.</span></span><br><span class="line">			<span class="keyword">return</span> equals(args[<span class="number">0</span>]);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">this</span>.hashCodeDefined &amp;&amp; AopUtils.isHashCodeMethod(method)) &#123;</span><br><span class="line">			<span class="comment">// The target does not implement the hashCode() method itself.</span></span><br><span class="line">			<span class="keyword">return</span> hashCode();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (method.getDeclaringClass() == DecoratingProxy.class) &#123;</span><br><span class="line">			<span class="comment">// There is only getDecoratedClass() declared -&gt; dispatch to proxy config.</span></span><br><span class="line">			<span class="keyword">return</span> AopProxyUtils.ultimateTargetClass(<span class="built_in">this</span>.advised);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">this</span>.advised.opaque &amp;&amp; method.getDeclaringClass().isInterface() &amp;&amp;</span><br><span class="line">				method.getDeclaringClass().isAssignableFrom(Advised.class)) &#123;</span><br><span class="line">			<span class="comment">// Service invocations on ProxyConfig with the proxy config...</span></span><br><span class="line">			<span class="keyword">return</span> AopUtils.invokeJoinpointUsingReflection(<span class="built_in">this</span>.advised, method, args);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		Object retVal;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//如果该属性设置为true，则把代理对象设置到ThreadLocal中</span></span><br><span class="line">		<span class="keyword">if</span> (<span class="built_in">this</span>.advised.exposeProxy) &#123;</span><br><span class="line">			<span class="comment">// Make invocation available if necessary.</span></span><br><span class="line">			oldProxy = AopContext.setCurrentProxy(proxy);</span><br><span class="line">			setProxyContext = <span class="literal">true</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//这个target就是被代理实例</span></span><br><span class="line">		target = targetSource.getTarget();</span><br><span class="line">		Class&lt;?&gt; targetClass = (target != <span class="literal">null</span> ? target.getClass() : <span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">		<span class="comment">//从代理工厂中拿过滤器链 Object是一个MethodInterceptor类型的对象，其实就是一个advice对象</span></span><br><span class="line">		List&lt;Object&gt; chain = <span class="built_in">this</span>.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);</span><br><span class="line"></span><br><span class="line">		<span class="comment">//如果该方法没有执行链，则说明这个方法不需要被拦截，则直接反射调用</span></span><br><span class="line">		<span class="keyword">if</span> (chain.isEmpty()) &#123;</span><br><span class="line">			Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);</span><br><span class="line">			retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// We need to create a method invocation...</span></span><br><span class="line">			<span class="type">MethodInvocation</span> <span class="variable">invocation</span> <span class="operator">=</span></span><br><span class="line">					<span class="keyword">new</span> <span class="title class_">ReflectiveMethodInvocation</span>(proxy, target, method, args, targetClass, chain);</span><br><span class="line">			<span class="comment">// Proceed to the joinpoint through the interceptor chain.</span></span><br><span class="line">			retVal = invocation.proceed();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Massage return value if necessary.</span></span><br><span class="line">		Class&lt;?&gt; returnType = method.getReturnType();</span><br><span class="line">		<span class="keyword">if</span> (retVal != <span class="literal">null</span> &amp;&amp; retVal == target &amp;&amp;</span><br><span class="line">				returnType != Object.class &amp;&amp; returnType.isInstance(proxy) &amp;&amp;</span><br><span class="line">				!RawTargetAccess.class.isAssignableFrom(method.getDeclaringClass())) &#123;</span><br><span class="line">			retVal = proxy;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (retVal == <span class="literal">null</span> &amp;&amp; returnType != Void.TYPE &amp;&amp; returnType.isPrimitive()) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">AopInvocationException</span>(</span><br><span class="line">					<span class="string">&quot;Null return value from advice does not match primitive return type for: &quot;</span> + method);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> retVal;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">finally</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> (target != <span class="literal">null</span> &amp;&amp; !targetSource.isStatic()) &#123;</span><br><span class="line">			<span class="comment">// Must have come from TargetSource.</span></span><br><span class="line">			targetSource.releaseTarget(target);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (setProxyContext) &#123;</span><br><span class="line">			<span class="comment">// Restore old proxy.</span></span><br><span class="line">			AopContext.setCurrentProxy(oldProxy);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看重要的。先执行到这里</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512276.png" alt="image-20210317175657165"></p>
+<p>这里的意思就是如果在在这种情况</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512565.png" alt="image-20210317174641002"></p>
+<p>设置了exposeProxy&#x3D;true，那么可以就会把代理对象放入到一个ThreadLocal中。在方法中就可以通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AopContext.currentProxy()</span><br></pre></td></tr></table></figure>
+
+<p>获取到代理对象。这是可以解决这种[问题](.&#x2F;Sping AOP在开发中的问题)</p>
+<p>下面就是AOP调用的核心逻辑了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512278.png" alt="image-20210317180432566"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Object&gt; chain = <span class="built_in">this</span>.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass)</span><br></pre></td></tr></table></figure>
+
+<p>这个方法会去检查这个执行的方法是否被拦截，并会返回匹配到的advice对象。</p>
+<p>如果没有advice被返回，那执行了</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512279.png" alt="image-20210317181214537"></p>
+<p>也就是直接通过反射，用用被代理对象来调用。</p>
+<p>而如果通过该方法有匹配成功的Advisor，那就直接来过增强逻辑的调用流程了</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512280.png" alt="image-20210317191051694"></p>
+<p>下面先看下这个方法<code>advised.getInterceptorsAndDynamicInterceptionAdvice</code></p>
+<h3 id="在方法调用时，获取匹配的Advisor"><a href="#在方法调用时，获取匹配的Advisor" class="headerlink" title="在方法调用时，获取匹配的Advisor"></a>在方法调用时，获取匹配的Advisor</h3><p>跟踪代码到<code>DefaultAdvisorChainFactory#getInterceptorsAndDynamicInterceptionAdvice</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//DefaultAdvisorChainFactory</span></span><br><span class="line"><span class="keyword">public</span> List&lt;Object&gt; <span class="title function_">getInterceptorsAndDynamicInterceptionAdvice</span><span class="params">(</span></span><br><span class="line"><span class="params">		Advised config, Method method, <span class="meta">@Nullable</span> Class&lt;?&gt; targetClass)</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// This is somewhat tricky... We have to process introductions first,</span></span><br><span class="line">	<span class="comment">// but we need to preserve order in the ultimate list.</span></span><br><span class="line">	<span class="type">AdvisorAdapterRegistry</span> <span class="variable">registry</span> <span class="operator">=</span> GlobalAdvisorAdapterRegistry.getInstance();</span><br><span class="line">	<span class="comment">//从代理工厂中获得该被代理类的所有切面advisor，config就是代理工厂对象</span></span><br><span class="line">	Advisor[] advisors = config.getAdvisors();</span><br><span class="line">	List&lt;Object&gt; interceptorList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(advisors.length);</span><br><span class="line">	Class&lt;?&gt; actualClass = (targetClass != <span class="literal">null</span> ? targetClass : method.getDeclaringClass());</span><br><span class="line">	<span class="type">Boolean</span> <span class="variable">hasIntroductions</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (Advisor advisor : advisors) &#123;</span><br><span class="line">		<span class="comment">//大部分走这里</span></span><br><span class="line">		<span class="keyword">if</span> (advisor <span class="keyword">instanceof</span> PointcutAdvisor) &#123;</span><br><span class="line">			<span class="comment">// Add it conditionally.</span></span><br><span class="line">			<span class="type">PointcutAdvisor</span> <span class="variable">pointcutAdvisor</span> <span class="operator">=</span> (PointcutAdvisor) advisor;</span><br><span class="line">			<span class="comment">//如果切面的pointCut和被代理对象是匹配的，说明是切面要拦截的对象..先进行类匹配</span></span><br><span class="line">			<span class="keyword">if</span> (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) &#123;</span><br><span class="line">				<span class="comment">//先类匹配，然后在方法匹配</span></span><br><span class="line">				<span class="type">MethodMatcher</span> <span class="variable">mm</span> <span class="operator">=</span> pointcutAdvisor.getPointcut().getMethodMatcher();</span><br><span class="line">				<span class="type">boolean</span> match;</span><br><span class="line">				<span class="keyword">if</span> (mm <span class="keyword">instanceof</span> IntroductionAwareMethodMatcher) &#123;</span><br><span class="line">					<span class="keyword">if</span> (hasIntroductions == <span class="literal">null</span>) &#123;</span><br><span class="line">						hasIntroductions = hasMatchingIntroductions(advisors, actualClass);</span><br><span class="line">					&#125;</span><br><span class="line">					match = ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">					match = mm.matches(method, actualClass);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">//如果类和方法都匹配</span></span><br><span class="line">				<span class="keyword">if</span> (match) &#123;</span><br><span class="line">					<span class="comment">//获取到切面advisor中的advice，并且包装成MethodInterceptor类型的对象</span></span><br><span class="line">					MethodInterceptor[] interceptors = registry.getInterceptors(advisor);</span><br><span class="line">					<span class="keyword">if</span> (mm.isRuntime()) &#123;</span><br><span class="line">						<span class="comment">// Creating a new object instance in the getInterceptors() method</span></span><br><span class="line">						<span class="comment">// isn&#x27;t a problem as we normally cache created chains.</span></span><br><span class="line">						<span class="keyword">for</span> (MethodInterceptor interceptor : interceptors) &#123;</span><br><span class="line">							interceptorList.add(<span class="keyword">new</span> <span class="title class_">InterceptorAndDynamicMethodMatcher</span>(interceptor, mm));</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> &#123;</span><br><span class="line">						interceptorList.addAll(Arrays.asList(interceptors));</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//如果是引介切面</span></span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (advisor <span class="keyword">instanceof</span> IntroductionAdvisor) &#123;</span><br><span class="line">			<span class="type">IntroductionAdvisor</span> <span class="variable">ia</span> <span class="operator">=</span> (IntroductionAdvisor) advisor;</span><br><span class="line">			<span class="keyword">if</span> (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) &#123;</span><br><span class="line">				Interceptor[] interceptors = registry.getInterceptors(advisor);</span><br><span class="line">				interceptorList.addAll(Arrays.asList(interceptors));</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			Interceptor[] interceptors = registry.getInterceptors(advisor);</span><br><span class="line">			interceptorList.addAll(Arrays.asList(interceptors));</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> interceptorList;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先获取了<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512281.png" alt="image-20210317181912009"></p>
+<blockquote>
+<p>上述方法中的config就是</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512282.png" alt="image-20211205060256121"></p>
+</blockquote>
+<p>这个advisors就是在AOP解析最后匹配成功的Advisor</p>
+<p>接着执行到这个for循环<img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512283.png" alt="image-20210317182150045"></p>
+<p>上边的代码块就是进行了类匹配和方法匹配，如果匹配成功了会执行到</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512284.png" alt="image-20211205060515436"></p>
+<p>这里，下面就讲这代码块</p>
+<h4 id="getInterceptors"><a href="#getInterceptors" class="headerlink" title="getInterceptors"></a>getInterceptors</h4><p>看一个方法</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512285.png" alt="image-20210317193954712"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512286.png" alt="image-20210317194101674"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512287.png" alt="image-20210319182543558"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512288.png" alt="image-20210319182602701"></p>
+<p>可以看到，这个方法里会做一些类型的转变，就看一个<code>AfterReturningAdviceAdapter</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512289.png" alt="image-20210319182800384"></p>
+<p>可以看到，这里会把AfterRetruningAdvice这个Advice封装成一个<code>AfterReturningAdviceInterceptor</code>，也就是存在这样的封装</p>
+<ul>
+<li>AfterReturningAdvice——AfterReturningAdviceInterceptor</li>
+<li>MethodBeforeAdviceAdapter——MethodBeforeAdviceInterceptor</li>
+<li>ThrowsAdviceAdapter——ThrowsAdviceInterceptor</li>
+</ul>
+<h4 id="getInterceptors方法执行完后"><a href="#getInterceptors方法执行完后" class="headerlink" title="getInterceptors方法执行完后"></a>getInterceptors方法执行完后</h4><p>getInterceptors方法执行完后有这样一个判断。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512290.png" alt="image-20210319183345715"></p>
+<p>就是MethodMatcher.isRuntime放回true后，那么就会把MethodInterceptor封装成<code>InterceptorAndDynamicMethodMatcher</code>。这个的作用在这先透露下，就是在Advice执行前做方法的参数校验的。</p>
+<h3 id="赠强方法的调用过程——ReflectiveMethodInvocation-proceed"><a href="#赠强方法的调用过程——ReflectiveMethodInvocation-proceed" class="headerlink" title="赠强方法的调用过程——ReflectiveMethodInvocation#proceed"></a>赠强方法的调用过程——ReflectiveMethodInvocation#proceed</h3><p>回到JdkDynamicAopProxy的invoke方法。</p>
+<p>现在假如在方法调用时，调用的方法找到匹配的Advice列表（一条责任链），会执行下面的代码块。这也是</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512291.png" alt="image-20210319183726255"></p>
+<p>先看下ReflectiveMethodInvocation的构造方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="variable">currentInterceptorIndex</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"><span class="keyword">protected</span> <span class="title function_">ReflectiveMethodInvocation</span><span class="params">(</span></span><br><span class="line"><span class="params">		Object proxy, <span class="meta">@Nullable</span> Object target, Method method, <span class="meta">@Nullable</span> Object[] arguments,</span></span><br><span class="line"><span class="params">		<span class="meta">@Nullable</span> Class&lt;?&gt; targetClass, List&lt;Object&gt; interceptorsAndDynamicMethodMatchers)</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">this</span>.proxy = proxy;</span><br><span class="line">	<span class="built_in">this</span>.target = target;</span><br><span class="line">	<span class="built_in">this</span>.targetClass = targetClass;</span><br><span class="line">	<span class="built_in">this</span>.method = BridgeMethodResolver.findBridgedMethod(method);</span><br><span class="line">	<span class="built_in">this</span>.arguments = AopProxyUtils.adaptArgumentsIfNecessary(method, arguments);</span><br><span class="line">	<span class="built_in">this</span>.interceptorsAndDynamicMethodMatchers = interceptorsAndDynamicMethodMatchers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看下<code>ReflectiveMethodInvocation#proceed</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="keyword">public</span> Object <span class="title function_">proceed</span><span class="params">()</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">	<span class="comment">// We start with an index of -1 and increment early.</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">this</span>.currentInterceptorIndex == <span class="built_in">this</span>.interceptorsAndDynamicMethodMatchers.size() - <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> invokeJoinpoint();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="type">Object</span> <span class="variable">interceptorOrInterceptionAdvice</span> <span class="operator">=</span></span><br><span class="line">			<span class="built_in">this</span>.interceptorsAndDynamicMethodMatchers.get(++<span class="built_in">this</span>.currentInterceptorIndex);</span><br><span class="line">	<span class="keyword">if</span> (interceptorOrInterceptionAdvice <span class="keyword">instanceof</span> InterceptorAndDynamicMethodMatcher) &#123;</span><br><span class="line">		<span class="comment">// Evaluate dynamic method matcher here: static part will already have</span></span><br><span class="line">		<span class="comment">// been evaluated and found to match.</span></span><br><span class="line">		<span class="type">InterceptorAndDynamicMethodMatcher</span> <span class="variable">dm</span> <span class="operator">=</span></span><br><span class="line">				(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;</span><br><span class="line">		Class&lt;?&gt; targetClass = (<span class="built_in">this</span>.targetClass != <span class="literal">null</span> ? <span class="built_in">this</span>.targetClass : <span class="built_in">this</span>.method.getDeclaringClass());</span><br><span class="line">		<span class="keyword">if</span> (dm.methodMatcher.matches(<span class="built_in">this</span>.method, targetClass, <span class="built_in">this</span>.arguments)) &#123;</span><br><span class="line">			<span class="keyword">return</span> dm.interceptor.invoke(<span class="built_in">this</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// Dynamic matching failed.</span></span><br><span class="line">			<span class="comment">// Skip this interceptor and invoke the next in the chain.</span></span><br><span class="line">			<span class="keyword">return</span> proceed();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// It&#x27;s an interceptor, so we just invoke it: The pointcut will have</span></span><br><span class="line">		<span class="comment">// been evaluated statically before this object was constructed.</span></span><br><span class="line">		<span class="keyword">return</span> ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(<span class="built_in">this</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在第一个if中，由于<code>currentInterceptorIndex</code>属性的默认值为-1，所以先不会执行到这。</p>
+<p>接着执行这代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Object</span> <span class="variable">interceptorOrInterceptionAdvice</span> <span class="operator">=</span></span><br><span class="line">				<span class="built_in">this</span>.interceptorsAndDynamicMethodMatchers.get(++<span class="built_in">this</span>.currentInterceptorIndex);</span><br></pre></td></tr></table></figure>
+
+<p>而这代码的意思就是获取匹配到的Advice中的第<code>++this.currentInterceptorIndex</code>个。</p>
+<h4 id="运行时参数匹配"><a href="#运行时参数匹配" class="headerlink" title="运行时参数匹配"></a>运行时参数匹配</h4><p>接着到下一个if</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512292.png" alt="image-20210319184250459"></p>
+<p>这个<code>InterceptorAndDynamicMethodMatcher</code>就是当MethodMatcher.isRuntime放回true后生成的。里面的逻辑挺简单的，就是在运行时进行参数匹配，比如这可以判断参数是等于某个值时才进行执行增强的方法。为ture时的代码方法到下面讲。else的时候就递归调用（跳过这个Advice）。</p>
+<h4 id="MethodInterceptor的invoke调用"><a href="#MethodInterceptor的invoke调用" class="headerlink" title="MethodInterceptor的invoke调用"></a>MethodInterceptor的invoke调用</h4><p>现在看回这段代码。<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512293.png" alt="image-20210319192517848"></p>
+<p>解析前，先说下在这段代码中涉及到的一些关系</p>
+<ul>
+<li>@Around——在APO注解解析时——AspectJAroundAdvice</li>
+<li>@Before ——在APO注解解析时—— AspectJMethodBeforeAdvice——在方法调用时，增强逻辑执行前——MethodBeforeAdviceInterceptor</li>
+<li>@After —— 在APO注解解析时——AspectJAfterAdvice——在方法调用时，增强逻辑执行前——AfterReturningAdviceInterceptor</li>
+<li>@AfterReturning ——在APO注解解析时—— AspectJAfterReturningAdvice</li>
+<li>@AfterThrowing ——在APO注解解析时—— AspectJAfterThrowingAdvice——在方法调用时，增强逻辑执行前——ThrowsAdviceInterceptor</li>
+</ul>
+<p>这些关系在之前就已经说明了。看会代码，这一段代码的意思就是执行增强逻辑的，比如下面的这些方法。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512294.png" alt="image-20210317192555766"></p>
+<p>现在假设interceptorOrInterceptionAdvice的类型是MethodBeforeAdviceInterceptor</p>
+<p>看<code>MethodBeforeAdviceInterceptor</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512295.png" alt="image-20210317195017237"></p>
+<p>这个advice就是<code>AspectJMethodBeforeAdvice</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512296.png" alt="image-20210317195101606"></p>
+<p>这个before就是一个反射调用方法，而这个方法就是增强的方法，过程就不看了。重点看before方法调用后的MethodInvocation.proceeed方法。我们再看下调用invoke的代码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512297.png" alt="image-20210317192242366"></p>
+<p>传了一个this进来，也就是说这个mi就是ReflectiveMethodInvocation这个对象本身，所以mi.proceed就是一个递归调用的过程，由于前一次会下标进行了+1的操作，所以这次的调用的Advice变成了第二个，然后这个又重复。比如第二次调用的Advice是AspectJAroundAdvice</p>
+<p>看<code>AspectJAroundAdvice</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512298.png" alt="image-20210317200121715"></p>
+<p>其实这里和before那一样的，不同点在于</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512299.png" alt="image-20210319194330455"></p>
+<p>aroud多传了ProceedingJoinPoint这个参数。最后还是调用了增强的方法。看回上图，before1()方法调用完之后之所以能能调用下个Advice是因为他的MethodInvocation默认帮我们调用了proceed()。而around不同，看它的invoke只是调用了增强方法本身，并没有帮我们传递，所以对于aroud就必须在增强方法那调用</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512300.png" alt="image-20210319194723059"></p>
+<p>这个方法才能继续调用下一个Advice。</p>
+<p>好了，其他的就不说的了，其它大致也差不多。</p>
+<p>那问题来了，什么时候调用目标方法呢？</p>
+<h4 id="目标方法的调用"><a href="#目标方法的调用" class="headerlink" title="目标方法的调用"></a>目标方法的调用</h4><p>回到<code>ReflectiveMethodInvocation#proceed</code></p>
+<p>看这里，当Advisor调用完后，这个if返回true</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512301.png" alt="image-20210319200751490"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512302.png" alt="image-20210319200807341"></p>
+<p>从传参就可以猜到作用了，继续跟踪</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512303.png" alt="image-20210319200836401"></p>
+<p>最后通过反射调用了目标方法。<strong>也就是说，执行目标方法的条件就是匹配的切面都执行过了（注意不是执行完）</strong></p>
+<h4 id="再谈ExposeInvocationInterceptor-ADVISOR"><a href="#再谈ExposeInvocationInterceptor-ADVISOR" class="headerlink" title="再谈ExposeInvocationInterceptor.ADVISOR"></a>再谈ExposeInvocationInterceptor.ADVISOR</h4><p>前面已经说过了，在匹配到的Advisor中只要有用注解定义的切面，那每次都会在匹配的到的Advisors列表的头部添加上这个</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512304.png" alt="image-20210317140041053"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512305.png" alt="image-20210317140103056"></p>
+<p>这里看下这个切面有什么用。</p>
+<p>在ExposeInvocationInterceptor中看到</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512306.png" alt="image-20210317140807528"></p>
+<p>切面的类型是<code>DefaultPointcutAdvisor</code>，看一个切面主要看两点，pointcut和Advice。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512307.png" alt="image-20210317140830181"></p>
+<p>从构造函数可以看出，切点是<code>Pointcut.TRUE</code>，Advice是<code>ExposeInvocationInterceptor</code>。</p>
+<p>切点无非就看两个，ClassFilter和MethodMatcher，跟踪代码看到</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512308.png" alt="image-20210317141111827"></p>
+<p>这里我不继续跟了，<code>ClassFilter.TRUE</code>和<code>MethodMatcher.TRUE</code>两个实际上不做什么，在它们的match方法上都返回true，也就是说对所有类和方法都通行。下面看Advice</p>
+<p>看Advice，<strong>在Spring中实现一个Advice，有两种方法，实现<code>Advice</code>接口、另一个实现<code>MethodInterceptor</code>接口。用得最多的就是实现<code>MethodInterceptor</code>接口的。</strong>这<code>ExposeInvocationInterceptor</code>就是实现了<code>MethodInterceptor</code>接口，所以看它的作用就只需看invoke方法。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512309.png" alt="image-20210317141516000"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512310.png" alt="image-20210317141541840"></p>
+<p>这个切面所做的增强只是在把MethodInvocation方法放入到了一个ThreadLocal中，并且把旧的删除。由于它是在切面数组的0号位置，所以会第一次执行（我们没有添加全局AOP时）</p>
+<p>这样带来的便利就是在方法中，只需要通过</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ExposeInvocationInterceptor.currentInvocation()</span><br></pre></td></tr></table></figure>
+
+<p>就能获取到MethodInvocation。这个对象的类型为<code>ReflectiveMethodInvocation</code>。通过这个对象，可以获取目标对象，代理类，参数等。</p>
+<blockquote>
+<p>如果全部的Advisor都是用接口实现的，这种情况下通过下面的方法会返回一个null值</p>
+</blockquote>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>现在假设我定义的切面入下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512311.png" alt="image-20210317201154704"></p>
+<p>然后又调用 了一个测试方法</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512312.png" alt="image-20210317202546525"></p>
+<p>aopBean1这个就是代理对象，aopBean1.print(“xx”);调用后就执行了下边的流程。</p>
+<p>这时开始调用前的链表顺序是这样的(不考虑全局的AOP和ExposeInvocationInterceptor.ADVISOR)</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512313.png" alt="image-20210317200702130"></p>
+<p>也就是说先调用了around1</p>
+<p><code>System.out.println(&quot;around1----1&quot;);</code></p>
+<p>然后调用了<code>joinPoint.proceed();</code>，这个方法的作用和before中的mi.proceed是一样的，就是又调用链中的下一个Advice，这时也就是执行around2，而around2中又执行了</p>
+<p><code>System.out.println(&quot;around2---1&quot;);</code>接着又调用了<code>joinPoint.proceed();</code>，又调用了链中的下一个Advice也就是before1的<code>System.out.println(&quot;before1----1&quot;);</code>。这时从上边可以知道，before1方法执行完后又调用会调用连中下一个，这时链中Advice已经调用完了，就执行了这行代码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512314.png" alt="image-20210317202312283"></p>
+<p>这就是执行目标方法的，执行完后就返回了，这时before1返回了，接着before1出栈，又到aroud2执行了，around2执行了<code>System.out.println(&quot;around2---2&quot;);</code>后就出栈了，又到aroud1执行了</p>
+<p>around1执行了<code>System.out.println(&quot;around1----2&quot;);</code>,aroud1又出栈了，接着其他方法也执行完了，那整个调用就完成了，打印应结果</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512315.png" alt="image-20210317203226758"></p>
+<p>和预测的一样，整个执行时序是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">动态代理的invoke()方法入栈：</span><br><span class="line">ReflectiveMethodInvocation.proceed()入栈：</span><br><span class="line"></span><br><span class="line">around1()方法入栈：</span><br><span class="line">around1:System.out.println(&quot;around1----1&quot;);</span><br><span class="line">around1:joinPoint.proceed();</span><br><span class="line"></span><br><span class="line">around2()方法入栈：</span><br><span class="line">around2:System.out.println(&quot;around2---1&quot;);</span><br><span class="line">around2:joinPoint.proceed();</span><br><span class="line"></span><br><span class="line">before1()方法入栈：</span><br><span class="line">before1: System.out.println(&quot;before1----1&quot;);</span><br><span class="line"></span><br><span class="line">目标方法入栈：</span><br><span class="line">目标方法执行</span><br><span class="line">目标方法出栈</span><br><span class="line"></span><br><span class="line">before1()方法出栈。</span><br><span class="line"></span><br><span class="line">around2:System.out.println(&quot;around2---2&quot;);</span><br><span class="line">around2()方法出栈。</span><br><span class="line"></span><br><span class="line">around1:System.out.println(&quot;around1----2&quot;);</span><br><span class="line">around1()方法出栈。</span><br><span class="line"></span><br><span class="line">ReflectiveMethodInvocation.proceed()出栈。</span><br><span class="line"></span><br><span class="line">动态代理的invoke()方法出栈。</span><br></pre></td></tr></table></figure>
+
+<p>这里我把joinPoint.proceed()称为火炬传递，看下Afiter，也是一样的，只是先火炬传递，然后再调用after的逻辑。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/blog/1414371176569512316.png" alt="image-20210317203823619"></p>
+<p>​    这其实和Netty中的pipeline一样的</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/spring/10-Spring%20AOP%E4%B8%AD%E7%9A%84%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8/">http://sv.pointcut.cc/blog/spring/10-Spring AOP中的方法调用/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/spring/">spring</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/spring/11-Spring-%E7%94%A8%E6%8E%A5%E5%8F%A3%E5%AE%9E%E7%8E%B0AOP/">11-Spring-用接口实现AOP</a><a class="next" href="/blog/spring/09-Spring-AOP%E8%A7%A3%E6%9E%90/">09-Spring-AOP解析</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#JdkDynamicAopProxy"><span class="toc-number">1.</span> <span class="toc-text">JdkDynamicAopProxy</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8%E6%97%B6%EF%BC%8C%E8%8E%B7%E5%8F%96%E5%8C%B9%E9%85%8D%E7%9A%84Advisor"><span class="toc-number">1.1.</span> <span class="toc-text">在方法调用时，获取匹配的Advisor</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#getInterceptors"><span class="toc-number">1.1.1.</span> <span class="toc-text">getInterceptors</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#getInterceptors%E6%96%B9%E6%B3%95%E6%89%A7%E8%A1%8C%E5%AE%8C%E5%90%8E"><span class="toc-number">1.1.2.</span> <span class="toc-text">getInterceptors方法执行完后</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B5%A0%E5%BC%BA%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8%E8%BF%87%E7%A8%8B%E2%80%94%E2%80%94ReflectiveMethodInvocation-proceed"><span class="toc-number">1.2.</span> <span class="toc-text">赠强方法的调用过程——ReflectiveMethodInvocation#proceed</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8F%82%E6%95%B0%E5%8C%B9%E9%85%8D"><span class="toc-number">1.2.1.</span> <span class="toc-text">运行时参数匹配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MethodInterceptor%E7%9A%84invoke%E8%B0%83%E7%94%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">MethodInterceptor的invoke调用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">目标方法的调用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%8D%E8%B0%88ExposeInvocationInterceptor-ADVISOR"><span class="toc-number">1.2.4.</span> <span class="toc-text">再谈ExposeInvocationInterceptor.ADVISOR</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.2.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876373-d1304d.jpeg')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

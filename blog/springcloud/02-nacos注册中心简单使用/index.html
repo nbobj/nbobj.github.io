@@ -1,0 +1,436 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>02-nacos注册中心简单使用 | XYZhi's学习笔记</title><meta name="keywords" content="springcloud"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="注册中心注册中心的总体设计   这里面有几个概念 服务续约：客户端定时像服务端发送心跳，服务端接收到心跳后修改服务的续约时间。服务端续约时间，来判断服务是否可能，当超过某个间隔后会把服务的状态修改为down，表示服务下线；当这个间隔继续增大，到达某个阈值时，移除该服务。 nacos注册中心使用引入依赖父Pom中支持spring cloud&amp;spring cloud alibaba, 引入依">
+<meta property="og:type" content="article">
+<meta property="og:title" content="02-nacos注册中心简单使用">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/springcloud/02-nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="注册中心注册中心的总体设计   这里面有几个概念 服务续约：客户端定时像服务端发送心跳，服务端接收到心跳后修改服务的续约时间。服务端续约时间，来判断服务是否可能，当超过某个间隔后会把服务的状态修改为down，表示服务下线；当这个间隔继续增大，到达某个阈值时，移除该服务。 nacos注册中心使用引入依赖父Pom中支持spring cloud&amp;spring cloud alibaba, 引入依">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg">
+<meta property="article:published_time" content="2021-11-27T12:00:07.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:56.199Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="springcloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/springcloud/02-nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '02-nacos注册中心简单使用',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:56'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">02-nacos注册中心简单使用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-27T12:00:07.000Z" title="发表于 2021-11-27 20:00:07">2021-11-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:56.199Z" title="更新于 2022-03-23 17:03:56">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/">开源框架</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="02-nacos注册中心简单使用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="注册中心"><a href="#注册中心" class="headerlink" title="注册中心"></a>注册中心</h2><p>注册中心的总体设计</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629905.png"></p>
+<p> 这里面有几个概念</p>
+<p>服务续约：客户端定时像服务端发送心跳，服务端接收到心跳后修改服务的续约时间。服务端续约时间，来判断服务是否可能，当超过某个间隔后会把服务的状态修改为down，表示服务下线；当这个间隔继续增大，到达某个阈值时，移除该服务。</p>
+<h2 id="nacos注册中心使用"><a href="#nacos注册中心使用" class="headerlink" title="nacos注册中心使用"></a>nacos注册中心使用</h2><h3 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h3><p>父Pom中支持spring cloud&amp;spring cloud alibaba, 引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--   父pom     --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">version</span>&gt;</span>Hoxton.SR8<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">	</span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-alibaba-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.2.5.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">	    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>当前项目pom中引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">&lt;!-- nacos服务注册与发现 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- nacos配置中心 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-config<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="application-yml中配置"><a href="#application-yml中配置" class="headerlink" title="application.yml中配置"></a>application.yml中配置</h3><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server</span>:<span class="string"></span></span><br><span class="line">  <span class="attr">port</span>: <span class="string">8020</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring</span>:<span class="string"></span></span><br><span class="line">  <span class="attr">application</span>:<span class="string"></span></span><br><span class="line">    <span class="attr">name</span>: <span class="string">mall-order  #微服务名称</span></span><br><span class="line">  <span class="attr">cloud</span>:<span class="string"></span></span><br><span class="line">    <span class="attr">nacos</span>:<span class="string"></span></span><br><span class="line"><span class="comment">    	#配置nacos注册中心地址</span></span><br><span class="line">      <span class="attr">discovery</span>:<span class="string"></span></span><br><span class="line">      	<span class="attr">server-addr</span>: <span class="string">127.0.0.1:8848</span></span><br><span class="line"><span class="comment">      	# 命名空间，用来做资源隔离。不同项目用不用的namespace</span></span><br><span class="line">      	<span class="attr">namespace</span>: <span class="string">39e1e969-15f9-46d2-832d-fa052da55377</span></span><br><span class="line"><span class="comment">      	# 分组，区分生成、测试、uat环境</span></span><br><span class="line">      	<span class="attr">group</span>: <span class="string">DEFAULT_GROUP</span></span><br><span class="line"><span class="comment">      	# 集群，不同的集群是可以互通的，但为了性能考虑的话，会优先使用指定的集群。指定集群没有节点可用才会用其他集群的资源</span></span><br><span class="line">        <span class="attr">cluster-name</span>: <span class="string">SH</span></span><br><span class="line"><span class="comment">        # true=临时实例; false=持久化实例，默认为true </span></span><br><span class="line">        <span class="attr">ephemeral</span>: <span class="string">false</span></span><br><span class="line"><span class="comment">        </span></span><br><span class="line"><span class="comment">			#配置中心</span></span><br><span class="line">      <span class="attr">config</span>:<span class="string"></span></span><br><span class="line">        <span class="attr">server-addr</span>: <span class="string">172.26.59.53:8848</span></span><br><span class="line">        <span class="attr">namespace</span>: <span class="string">603d3f39-e158-4e68-9773-fc7ec63bac23</span></span><br><span class="line"><span class="comment">        #允许加载多个配置文件</span></span><br><span class="line">        <span class="attr">extension-configs[0]</span>:<span class="string"></span></span><br><span class="line">          <span class="attr">data-id</span>: <span class="string">common.properties</span></span><br><span class="line"><span class="comment">          # 是否允许刷新配置，默认值为false</span></span><br><span class="line">          <span class="attr">refresh</span>: <span class="string">true</span></span><br><span class="line">        <span class="attr">extension-configs[1]</span>:<span class="string"></span></span><br><span class="line">          <span class="attr">data-id</span>: <span class="string">airline.properties</span></span><br><span class="line">          <span class="attr">group</span>: <span class="string">airline</span></span><br><span class="line">          <span class="attr">refresh</span>: <span class="string">true</span></span><br></pre></td></tr></table></figure>
+
+<p>还有很多配置，可以看配置的接收类<code>NacosDiscoveryProperties</code></p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>Key</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>服务端地址</code></td>
+<td><code>spring.cloud.nacos.discovery.server-addr</code></td>
+<td><code>无</code></td>
+<td><code>Nacos Server 启动监听的ip地址和端口</code></td>
+</tr>
+<tr>
+<td><code>服务名</code></td>
+<td><code>spring.cloud.nacos.discovery.service</code></td>
+<td><code>$&#123;spring.application.name&#125;</code></td>
+<td><code>给当前的服务命名</code></td>
+</tr>
+<tr>
+<td><code>服务分组</code></td>
+<td><code>spring.cloud.nacos.discovery.group</code></td>
+<td><code>DEFAULT_GROUP</code></td>
+<td><code>设置服务所处的分组</code></td>
+</tr>
+<tr>
+<td><code>权重</code></td>
+<td><code>spring.cloud.nacos.discovery.weight</code></td>
+<td><code>1</code></td>
+<td><code>取值范围 1 到 100，数值越大，权重越大</code></td>
+</tr>
+<tr>
+<td><code>网卡名</code></td>
+<td><code>spring.cloud.nacos.discovery.network-interface</code></td>
+<td><code>无</code></td>
+<td><code>当IP未配置时，注册的IP为此网卡所对应的IP地址，如果此项也未配置，则默认取第一块网卡的地址</code></td>
+</tr>
+<tr>
+<td><code>注册的IP地址</code></td>
+<td><code>spring.cloud.nacos.discovery.ip</code></td>
+<td><code>无</code></td>
+<td><code>优先级最高</code></td>
+</tr>
+<tr>
+<td><code>注册的端口</code></td>
+<td><code>spring.cloud.nacos.discovery.port</code></td>
+<td><code>-1</code></td>
+<td><code>默认情况下不用配置，会自动探测</code></td>
+</tr>
+<tr>
+<td><code>命名空间</code></td>
+<td><code>spring.cloud.nacos.discovery.namespace</code></td>
+<td><code>无</code></td>
+<td><code>常用场景之一是不同环境的注册的区分隔离，例如开发测试环境和生产环境的资源（如配置、服务）隔离等。</code></td>
+</tr>
+<tr>
+<td><code>AccessKey</code></td>
+<td><code>spring.cloud.nacos.discovery.access-key</code></td>
+<td><code>无</code></td>
+<td><code>当要上阿里云时，阿里云上面的一个云账号名</code></td>
+</tr>
+<tr>
+<td><code>SecretKey</code></td>
+<td><code>spring.cloud.nacos.discovery.secret-key</code></td>
+<td><code>无</code></td>
+<td><code>当要上阿里云时，阿里云上面的一个云账号密码</code></td>
+</tr>
+<tr>
+<td><code>Metadata</code></td>
+<td><code>spring.cloud.nacos.discovery.metadata</code></td>
+<td><code>无</code></td>
+<td><code>使用Map格式配置，用户可以根据自己的需要自定义一些和服务相关的元数据信息</code></td>
+</tr>
+<tr>
+<td><code>日志文件名</code></td>
+<td><code>spring.cloud.nacos.discovery.log-name</code></td>
+<td><code>无</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>集群</code></td>
+<td><code>spring.cloud.nacos.discovery.cluster-name</code></td>
+<td><code>DEFAULT</code></td>
+<td><code>配置成Nacos集群名称</code></td>
+</tr>
+<tr>
+<td><code>接入点</code></td>
+<td><code>spring.cloud.nacos.discovery.enpoint</code></td>
+<td><code>UTF-8</code></td>
+<td><code>地域的某个服务的入口域名，通过此域名可以动态地拿到服务端地址</code></td>
+</tr>
+<tr>
+<td><code>是否集成Ribbon</code></td>
+<td><code>ribbon.nacos.enabled</code></td>
+<td><code>true</code></td>
+<td><code>一般都设置成true即可</code></td>
+</tr>
+<tr>
+<td><code>是否开启Nacos Watch</code></td>
+<td><code>spring.cloud.nacos.discovery.watch.enabled</code></td>
+<td><code>true</code></td>
+<td><code>可以设置成false来关闭 watch</code></td>
+</tr>
+</tbody></table>
+<p><a target="_blank" rel="noopener" href="https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-discovery">Nacos discovery · alibaba&#x2F;spring-cloud-alibaba Wiki · GitHub</a></p>
+<h3 id="启动-Provider"><a href="#启动-Provider" class="headerlink" title="启动 Provider"></a>启动 Provider</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在另一个SpringCloud应用</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NacosProviderDemoApplication</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        SpringApplication.run(NacosProducerDemoApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RestController</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EchoController</span> &#123;</span><br><span class="line">        <span class="meta">@GetMapping(value = &quot;/echo/&#123;string&#125;&quot;)</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">echo</span><span class="params">(<span class="meta">@PathVariable</span> String string)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Hello Nacos Discovery &quot;</span> + string;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629906.png" alt="image-20211223025532156"></p>
+<h3 id="启动一个-Consumer-应用"><a href="#启动一个-Consumer-应用" class="headerlink" title="启动一个 Consumer 应用"></a>启动一个 Consumer 应用</h3><p>Consumer 的应用可能还没像启动一个 Provider 应用那么简单。因为在 Consumer 端需要去调用 Provider 端提供的REST 服务。例子中我们使用最原始的一种方式， 即显示的使用 LoadBalanceClient 和 RestTemolate 结合的方式来访问。 </p>
+<blockquote>
+<p>通过带有负载均衡的RestTemplate 和 FeignClient 也是可以访问的。</p>
+</blockquote>
+<p>&#x3D;&#x3D;@EnableDiscoveryClient这个注解可以省略&#x3D;&#x3D;</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NacosConsumerApp</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RestController</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NacosController</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Autowired</span></span><br><span class="line">        <span class="keyword">private</span> LoadBalancerClient loadBalancerClient;</span><br><span class="line">        <span class="meta">@Autowired</span></span><br><span class="line">        <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Value(&quot;$&#123;spring.application.name&#125;&quot;)</span></span><br><span class="line">        <span class="keyword">private</span> String appName;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@GetMapping(&quot;/echo/app-name&quot;)</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">echoAppName</span><span class="params">()</span>&#123;</span><br><span class="line">            <span class="comment">//使用 LoadBalanceClient 和 RestTemolate 结合的方式来访问</span></span><br><span class="line">            <span class="type">ServiceInstance</span> <span class="variable">serviceInstance</span> <span class="operator">=</span> loadBalancerClient.choose(<span class="string">&quot;nacos-provider&quot;</span>);</span><br><span class="line">            <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> String.format(<span class="string">&quot;http://%s:%s/echo/%s&quot;</span>, serviceInstance.getHost(), serviceInstance.getPort(), appName);</span><br><span class="line">            System.out.println(<span class="string">&quot;request url:&quot;</span>+url);</span><br><span class="line">            <span class="keyword">return</span> restTemplate.getForObject(url,String.class);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//实例化 RestTemplate 实例</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RestTemplate <span class="title function_">restTemplate</span><span class="params">()</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RestTemplate</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line"></span><br><span class="line">        SpringApplication.run(NacosConsumerApp.class,args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子中我们注入了一个 LoadBalancerClient 的实例，并且手动的实例化一个 RestTemplate。</p>
+<p>也可以使用<code>@LoadBalanced</code>注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableDiscoveryClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NacosConsumerApp</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RestController</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NacosController</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Autowired</span></span><br><span class="line">        <span class="keyword">private</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Value(&quot;$&#123;spring.application.name&#125;&quot;)</span></span><br><span class="line">        <span class="keyword">private</span> String appName;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@GetMapping(&quot;/echo/app-name&quot;)</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">echoAppName</span><span class="params">()</span>&#123;</span><br><span class="line">            <span class="comment">// 可以通过服务命来调用</span></span><br><span class="line">            <span class="type">String</span> <span class="variable">url</span> <span class="operator">=</span> String.format(<span class="string">&quot;http://mall-order/echo/%s&quot;</span>, appName);</span><br><span class="line">            System.out.println(<span class="string">&quot;request url:&quot;</span>+url);</span><br><span class="line">            <span class="keyword">return</span> restTemplate.getForObject(url,String.class);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//实例化 RestTemplate 实例</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">  	<span class="meta">@LoadBalanced</span></span><br><span class="line">    <span class="keyword">public</span> RestTemplate <span class="title function_">restTemplate</span><span class="params">()</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RestTemplate</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line"></span><br><span class="line">        SpringApplication.run(NacosConsumerApp.class,args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的RestTemplate调用在底层，就是使用了负载均衡器LoadBalancerClient通过 mall-order从注册中心中选一个去调用。这里使用了RestTemplate扩展点——ClientHttpRequestInterceptor。通过ribbon的LoadBalancerInterceptor，将mall-order转化为某个服务的ip:port这种形式。</p>
+<p>除了使用@LoadBalanced注解，还可以手动添加<code>LoadBalancerInterceptor</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RestConfig</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    LoadBalancerClient loadBalancer;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RestTemplate <span class="title function_">restTemplate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">RestTemplate</span> <span class="variable">restTemplate</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestTemplate</span>();</span><br><span class="line">        restTemplate.setInterceptors(Collections.singletonList(<span class="keyword">new</span> <span class="title class_">LoadBalancerInterceptor</span>(loadBalancer)));</span><br><span class="line">        <span class="keyword">return</span> restTemplate;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>@LoadBalanced注解其实是使用了@Qualifier注解，这里后面会介绍。@LoadBalanced注解的最终目的其实就是和上边的代码是一样的，都是为了创建LoadBalancerInterceptor。</p>
+</blockquote>
+<h3 id="使用NamingServer进行服务注册"><a href="#使用NamingServer进行服务注册" class="headerlink" title="使用NamingServer进行服务注册"></a>使用NamingServer进行服务注册</h3><p>这里的NamingServer是Nacos提供的一个接口。里面有如下类型的方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">registerInstance</span><br><span class="line">deregisterInstance</span><br><span class="line">getAllInstances</span><br><span class="line">selectInstances</span><br><span class="line">selectOneHealthyInstance</span><br><span class="line">getServicesOfServer</span><br><span class="line">subscribe</span><br><span class="line">unsubscribe</span><br></pre></td></tr></table></figure>
+
+<p>下面就介绍如果通过NamingServer进行服务注册</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NamingService  注册中心核心服务</span></span><br><span class="line"><span class="comment">// 这里是直接使用API来创建，但在SpringCloud应用中，不推荐使用。</span></span><br><span class="line"><span class="type">NamingService</span> <span class="variable">namingService</span> <span class="operator">=</span> NamingFactory.createNamingService(<span class="string">&quot;localhost:8848&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//服务注册</span></span><br><span class="line"><span class="type">String</span> <span class="variable">serviceName</span> <span class="operator">=</span> <span class="string">&quot;mall-user&quot;</span>;</span><br><span class="line">namingService.registerInstance(serviceName, <span class="string">&quot;localhost&quot;</span>, <span class="number">8040</span>);</span><br><span class="line">namingService.registerInstance(serviceName, <span class="string">&quot;localhost&quot;</span>, <span class="number">8041</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">Instance</span> <span class="variable">instance</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Instance</span>();</span><br><span class="line"><span class="comment">// 是否临时节点，这和zk里面的节点概念是一样的</span></span><br><span class="line">instance.setEphemeral(<span class="literal">false</span>);</span><br><span class="line">instance.setIp(<span class="string">&quot;localhost&quot;</span>);</span><br><span class="line">instance.setPort(<span class="number">8042</span>);</span><br><span class="line">instance.setServiceName(serviceName);</span><br><span class="line">namingService.registerInstance(serviceName, instance);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二个参数就是表面返回的节点是否健康的</span></span><br><span class="line">System.out.println(<span class="string">&quot;获取实例列表&quot;</span> + namingService.selectInstances(serviceName, <span class="literal">true</span>));</span><br><span class="line">System.out.println(<span class="string">&quot;获取一个健康实例&quot;</span> + namingService.selectOneHealthyInstance(serviceName));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 订阅服务变更事件</span></span><br><span class="line"><span class="comment">// 这个变更事件只是返回serviceName变更后的服务实例，而onEvent只是接受变化后的内容而已</span></span><br><span class="line">namingService.subscribe(serviceName, <span class="keyword">new</span> <span class="title class_">EventListener</span>() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onEvent</span><span class="params">(Event event)</span> &#123;</span><br><span class="line">      	<span class="comment">// 这里的Event的实现只有一个就是NamingEvent，</span></span><br><span class="line">        <span class="type">NamingEvent</span> <span class="variable">namingEvent</span> <span class="operator">=</span> (NamingEvent) event;</span><br><span class="line">        System.out.println(<span class="string">&quot;NamingEvent: &quot;</span>+namingEvent.getInstances());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在Spring cloud项目中可以通过下面方式获取<code>NamingService</code>对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line">NacosDiscoveryProperties nacosDiscoveryPropertiesCache</span><br><span class="line">  </span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line">NacosServiceManager nacosServiceManager</span><br><span class="line"></span><br><span class="line"><span class="comment">// 因为NamingService是没有直接交给Spring管理的，而是通过NacosServiceManager。</span></span><br><span class="line"><span class="keyword">private</span> NamingService <span class="title function_">namingService</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="comment">// 这里其实逻辑很简单，NamingService作为NacosServiceManager的一个属性成员。</span></span><br><span class="line">  <span class="comment">// 而getNamingService有两个作用，检查NamingService是否已经初始化</span></span><br><span class="line">  <span class="comment">// 如果初始化了就返回，没有就通过反射和NacosDiscoveryProperties配置作为参数进行NamingService的实例化</span></span><br><span class="line">	<span class="keyword">return</span> nacosServiceManager</span><br><span class="line">			.getNamingService(nacosDiscoveryProperties.getNacosProperties());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/springcloud/02-nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">http://sv.pointcut.cc/blog/springcloud/02-nacos注册中心简单使用/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/springcloud/">springcloud</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/springcloud/03-Spring-cloud-nacos%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%92%8C%E5%8F%91%E7%8E%B0%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86/">03-Spring-cloud-nacos服务注册和发现核心原理</a><a class="next" href="/blog/springcloud/01-nacos%E5%90%AF%E5%8A%A8/">01-nacos启动</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83"><span class="toc-number">1.</span> <span class="toc-text">注册中心</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">nacos注册中心使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96"><span class="toc-number">2.1.</span> <span class="toc-text">引入依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#application-yml%E4%B8%AD%E9%85%8D%E7%BD%AE"><span class="toc-number">2.2.</span> <span class="toc-text">application.yml中配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8-Provider"><span class="toc-number">2.3.</span> <span class="toc-text">启动 Provider</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E4%B8%80%E4%B8%AA-Consumer-%E5%BA%94%E7%94%A8"><span class="toc-number">2.4.</span> <span class="toc-text">启动一个 Consumer 应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8NamingServer%E8%BF%9B%E8%A1%8C%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C"><span class="toc-number">2.5.</span> <span class="toc-text">使用NamingServer进行服务注册</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>redis5的新特性Stream | XYZhi's学习笔记</title><meta name="keywords" content="redis"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redis Stream的结构如图所示，它有一个消息链表，将所有加入的消息都串起来， 每个消息都有一个唯一的D和对应的内容。消息是持久化的， Redis重启后，内容还在。  每个 Stream都有唯一的名称，它就是 Redis I的key，在我们首次使用xadd指令追加消息时自动创建。 每个Stream都可以挂多个消费组( Consumer Group)，每个消费组会有个游标last_delive">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis5的新特性Stream">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/redis/%E6%8B%93%E5%B1%95/redis5%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7Stream/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="Redis Stream的结构如图所示，它有一个消息链表，将所有加入的消息都串起来， 每个消息都有一个唯一的D和对应的内容。消息是持久化的， Redis重启后，内容还在。  每个 Stream都有唯一的名称，它就是 Redis I的key，在我们首次使用xadd指令追加消息时自动创建。 每个Stream都可以挂多个消费组( Consumer Group)，每个消费组会有个游标last_delive">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)">
+<meta property="article:published_time" content="2021-11-14T12:00:14.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:57.588Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/redis/%E6%8B%93%E5%B1%95/redis5%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7Stream/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'redis5的新特性Stream',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:57'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">redis5的新特性Stream</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-14T12:00:14.000Z" title="发表于 2021-11-14 20:00:14">2021-11-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:57.588Z" title="更新于 2022-03-23 17:03:57">2022-03-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="redis5的新特性Stream"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>Redis Stream的结构如图所示，它有一个消息链表，将所有加入的消息都串起来， 每个消息都有一个唯一的D和对应的内容。消息是持久化的， Redis重启后，内容还在。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427018.png" alt="image-20210214192429125"></p>
+<p>每个 Stream都有唯一的名称，它就是 Redis I的key，在我们首次使用xadd指令追加消息时自动创建。</p>
+<p>每个Stream都可以挂多个消费组( Consumer Group)，每个消费组会有个游标last_delivered_id在Stream数组之上往前移动，表示当前消费组已经消费到哪条消息了。每个消费组都有一个Stream内唯一的名称，消费组不会自动创建，它需要单独的指令 group create进行创建，需要指定 Stream的某个消息ID开始消费，这个ID用来初始化last_delivered_id变量。而且每个消费者内都有一个pending_ids变量，用来记录组内消费者读取了，但还没ack的消息。</p>
+<p>每个消费组的状态都是独立的，相互不受影响。也就是说同一份 Stream内部的消息会被每个消费组都消费到。</p>
+<p>同一个消费组可以挂接多个消费者( Consumer)，这些消费者之间是竞争关系任意一个消费者读取了消息都会使游标last_delivered_id往前移动。每个消费者有个组内唯一名称。</p>
+<p>消费者内部会有一个状态变量 pending_ids，它记录了当前已经被客户端读取， 但是还没有ack的消息。如果客户端没有ack，这个变量里面的消息ID就会越来越多，一旦某个消息被ack，它就开始减少。这个 pending_ids变量在 Redis官方被称为PEL，也就是 Pending Entries List，这是一个核心的数据结构，它用来确保客户端至少消费了消息一次，而不会在网络传输的中途丢失了而没被处理。</p>
+<h2 id="消息的ID"><a href="#消息的ID" class="headerlink" title="消息的ID"></a>消息的ID</h2><p>消息ID的形式是 timestampinmillis-sequence，例如1527846880572-5，它表示当前的消息在毫米时间戳1527846880572时产生，并且是该毫秒内产生的第5条消息。消息ID可以由服务器自动生成，也可以由客户端自己指定，但是形式必须是“整数整数”，而且后面加入的消息的1D必须要大于前面的消息ID</p>
+<h2 id="消息内容"><a href="#消息内容" class="headerlink" title="消息内容"></a>消息内容</h2><p>消息内容就是键值对，形如hash 结构的键值对</p>
+<h2 id="Stream操作"><a href="#Stream操作" class="headerlink" title="Stream操作"></a>Stream操作</h2><p>XADD：插入消息，保证有序，可以自动生成全局唯一 ID；</p>
+<p>XDEL：从Stream中删除消息，这里的删除仅仅是设置标志位。需要执行del命令活限制stream的长度才会真正的删除数据回收内存。</p>
+<p>XRANGE：获取Stream 中的消息列表，会自动过滤已经删除的消息。</p>
+<p>XLEN：获取Stream消息长度。</p>
+<p>XREAD：用于读取消息，可以按 ID 读取数据；</p>
+<p>XREADGROUP：按消费组形式读取消息；</p>
+<p>XPENDING：XPENDING 命令可以用来查询每个消费组内所有消费者已读取但尚未确认的消息。</p>
+<p>XACK： XACK 命令用于向消息队列确认消息处理已完成。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># * 号表示服务器自动生成凹，后面顺序跟着key、value</span><br><span class="line">xadd codehole * name xyz age 27</span><br><span class="line">xlen codehole</span><br><span class="line"># - 表示最小值 +表示最大值</span><br><span class="line">xrange codehole - +</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427019.png" alt="image-20210214194601539"><br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427020.png" alt="image-20210214194620209"><br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427021.png" alt="image-20210214194633580"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdel codehole 1527849609889-0</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="独立消费"><a href="#独立消费" class="headerlink" title="独立消费"></a>独立消费</h2><p>我们可以在不定义消费组的情况下进行 Stream消息的独立消费，当Stream没有新消息时，甚至可以阻塞等待。 Redis设计了一个单独的消费指令 xread，可以将Stream当成普通的消息队列(list)来使用。使用 xread时，我们可以完全忽略消费组的存在，就好像 Stream是一个普通的列表一样。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 从Stream头部读取两条消息，0-0表示头部</span><br><span class="line">xread count 2 streams codehole 0-0</span><br><span class="line"></span><br><span class="line"># 从尾部阻塞等待新消息到来，下面的指令会堵住，直到新消息到来</span><br><span class="line"># block 表示没消息时堵塞，block 0 表示没消息时一直堵塞下去直到有消费为止</span><br><span class="line">xread block 0 count 1 streams codehole $</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427022.png" alt="image-20210214195238442"></p>
+<p><strong>客户端如果想要使用 xread进行顺序消费，那么一定要记住当前消费到哪里了，也就是返回的消息ID。下次继续调用 xread时，将上次返回的最后一个消息ID作为参数传递进去，就可以继续消费后续的消息。</strong></p>
+<p>block0表示永远阻塞，直到消息到来; block1000表示阻塞1s，如果1s内没有任何消息到来，就返回nil<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427023.png" alt="image-20210214195409496"></p>
+<h2 id="创建消费组"><a href="#创建消费组" class="headerlink" title="创建消费组"></a>创建消费组</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 表示从头部开始消费</span><br><span class="line">xgroup create codehole cgl 0-0</span><br><span class="line"></span><br><span class="line"># $表示从尾部开始消费，只接受新消息，当前Stream消息会全部忽略</span><br><span class="line">xgroup create codehole cg2 $</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="消费组消费"><a href="#消费组消费" class="headerlink" title="消费组消费"></a>消费组消费</h2><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427024.png" alt="image-20210214200147759"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># &gt; 号表示从当前消费组的last_delivered_id后面开始读</span><br><span class="line"># 每当消费者读取一条消息，last_delivered_id变量就会前进</span><br><span class="line">xreadgroup GROUP cgl cl count 1 streams codehole &gt;</span><br><span class="line"></span><br><span class="line"># 堵塞等待消息</span><br><span class="line"># block 0 的语意和上面的一样</span><br><span class="line">xreadgroup GROUP cgl cl block 0 count 1 streams</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看Stream的信息"><a href="#查看Stream的信息" class="headerlink" title="查看Stream的信息"></a>查看Stream的信息</h2><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427025.png" alt="image-20210214195641145"><br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427026.png" alt="image-20210214200614636"><br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427027.png" alt="image-20210214200657733"></p>
+<h2 id="ack一条消息"><a href="#ack一条消息" class="headerlink" title="ack一条消息"></a>ack一条消息</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xack codehole cgl 1527851486781-0</span><br><span class="line"># ack多小消息</span><br><span class="line">xack codehole cgl 1527851493405-0 1527851498956-0 1527852774092-0</span><br></pre></td></tr></table></figure>
+
+<h2 id="获取指定消费组、消费者中，待确认（ACK）的消息"><a href="#获取指定消费组、消费者中，待确认（ACK）的消息" class="headerlink" title="获取指定消费组、消费者中，待确认（ACK）的消息"></a>获取指定消费组、消费者中，待确认（ACK）的消息</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; XPENDING my_stream  my_group</span><br><span class="line">1) (integer) 2       # 消费组中，所有消费者的pending消息数量</span><br><span class="line">2) &quot;1605524657157-0&quot; # pending消息中的，最小消息ID</span><br><span class="line">3) &quot;1605524665215-0&quot; # pending消息中的，最大消息ID</span><br><span class="line">4) 1) 1) &quot;my_consumer1&quot;  # 消费者1</span><br><span class="line">      2) &quot;1&quot;             # 有1条待确认消息</span><br><span class="line">   2) 1) &quot;my_consumer2&quot;  # 消费者2</span><br><span class="line">      2) &quot;1&quot;             # 有2条待确认消息</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; XPENDING my_stream  my_group 0 + 10 my_consumer1</span><br><span class="line">1) 1) &quot;1605524665215-0&quot;  # 待ACK消息ID</span><br><span class="line">   2) &quot;my_consumer1&quot;     # 所属消费者</span><br><span class="line">   3) (integer) 847437   # 消息自从被消费者获取后到现在过去的时间(毫秒) - idle time</span><br><span class="line">   4) (integer) 1        # 消息被获取的次数	- delivery counter</span><br></pre></td></tr></table></figure>
+
+<h2 id="Stream-消息太多怎么办"><a href="#Stream-消息太多怎么办" class="headerlink" title="Stream 消息太多怎么办"></a>Stream 消息太多怎么办</h2><p>要是消息积累太多，Stream的链表岂不是很长，内容会不会爆掉？xdel 指令又不会删除消息，它只是给消息做了个标志位。</p>
+<p>在xadd 的指令中提供个定长长度参数maxlen ，就可以将老的消息干掉，确保链表不超过指定长度。<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427028.png" alt="image-20210214201610532"></p>
+<h2 id="分区Partition"><a href="#分区Partition" class="headerlink" title="分区Partition"></a>分区Partition</h2><p>Redis的服务器没有原生支持分区能力，如果想要使用分区，那就需要分配多个Stream，然后在客户端使用一定的策略来生产消息到不同的 Stream。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/redis/%E6%8B%93%E5%B1%95/redis5%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7Stream/">http://sv.pointcut.cc/blog/redis/拓展/redis5的新特性Stream/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/redis/">redis</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/redis/%E6%8B%93%E5%B1%95/%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5/">过期策略</a><a class="next" href="/blog/redis/%E6%8B%93%E5%B1%95/Redis-del-%E6%87%92%E6%83%B0%E5%88%A0%E9%99%A4/">Redis-del-懒惰删除</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E7%9A%84ID"><span class="toc-number">1.</span> <span class="toc-text">消息的ID</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%86%85%E5%AE%B9"><span class="toc-number">2.</span> <span class="toc-text">消息内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stream%E6%93%8D%E4%BD%9C"><span class="toc-number">3.</span> <span class="toc-text">Stream操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8B%AC%E7%AB%8B%E6%B6%88%E8%B4%B9"><span class="toc-number">4.</span> <span class="toc-text">独立消费</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%B6%88%E8%B4%B9%E7%BB%84"><span class="toc-number">5.</span> <span class="toc-text">创建消费组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E7%BB%84%E6%B6%88%E8%B4%B9"><span class="toc-number">6.</span> <span class="toc-text">消费组消费</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8BStream%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">7.</span> <span class="toc-text">查看Stream的信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ack%E4%B8%80%E6%9D%A1%E6%B6%88%E6%81%AF"><span class="toc-number">8.</span> <span class="toc-text">ack一条消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%8C%87%E5%AE%9A%E6%B6%88%E8%B4%B9%E7%BB%84%E3%80%81%E6%B6%88%E8%B4%B9%E8%80%85%E4%B8%AD%EF%BC%8C%E5%BE%85%E7%A1%AE%E8%AE%A4%EF%BC%88ACK%EF%BC%89%E7%9A%84%E6%B6%88%E6%81%AF"><span class="toc-number">9.</span> <span class="toc-text">获取指定消费组、消费者中，待确认（ACK）的消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stream-%E6%B6%88%E6%81%AF%E5%A4%AA%E5%A4%9A%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">10.</span> <span class="toc-text">Stream 消息太多怎么办</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8C%BAPartition"><span class="toc-number">11.</span> <span class="toc-text">分区Partition</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

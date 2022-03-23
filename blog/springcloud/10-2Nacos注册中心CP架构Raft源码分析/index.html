@@ -1,0 +1,400 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>10-2Nacos注册中心CP架构Raft源码分析 | XYZhi's学习笔记</title><meta name="keywords" content="springcloud"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="raft 在1.4.0之后使用了sofa-jraft（从百度的 braft 移植而来）来代替nacos自己实现的raft。 这里看nacos自己实现的简化了的raft协议，注意了，是简化过的，不是严格的Raft协议，所以1.4.0之后已经被标记为弃用了,使用了sofa-jraft。  在Nacos是同时支持AP和CP的，默认情况下，注册的服务是使用AP架构，而如果要使用CP架构，只需要使用持久实">
+<meta property="og:type" content="article">
+<meta property="og:title" content="10-2Nacos注册中心CP架构Raft源码分析">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/springcloud/10-2Nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83CP%E6%9E%B6%E6%9E%84Raft%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="raft 在1.4.0之后使用了sofa-jraft（从百度的 braft 移植而来）来代替nacos自己实现的raft。 这里看nacos自己实现的简化了的raft协议，注意了，是简化过的，不是严格的Raft协议，所以1.4.0之后已经被标记为弃用了,使用了sofa-jraft。  在Nacos是同时支持AP和CP的，默认情况下，注册的服务是使用AP架构，而如果要使用CP架构，只需要使用持久实">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg">
+<meta property="article:published_time" content="2021-11-27T12:00:18.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:56.496Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="springcloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/springcloud/10-2Nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83CP%E6%9E%B6%E6%9E%84Raft%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '10-2Nacos注册中心CP架构Raft源码分析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:56'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">10-2Nacos注册中心CP架构Raft源码分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-27T12:00:18.000Z" title="发表于 2021-11-27 20:00:18">2021-11-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:56.496Z" title="更新于 2022-03-23 17:03:56">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/">开源框架</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="10-2Nacos注册中心CP架构Raft源码分析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p><a href="./00-Raft%E5%8D%8F%E8%AE%AE">raft</a></p>
+<p>在1.4.0之后使用了<a target="_blank" rel="noopener" href="https://github.com/sofastack/sofa-jraft">sofa-jraft（从百度的 braft 移植而来）</a>来代替nacos自己实现的raft。</p>
+<p>这里看nacos自己实现的简化了的raft协议，注意了，是简化过的，不是严格的Raft协议，所以1.4.0之后已经被标记为弃用了,使用了sofa-jraft。</p>
+</blockquote>
+<p>在Nacos是同时支持AP和CP的，默认情况下，注册的服务是使用AP架构，而如果要使用CP架构，只需要使用持久实例就好了，比如下面的配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">mall-user-ribbon-demo</span>  <span class="comment">#微服务名称</span></span><br><span class="line">  <span class="comment">#配置nacos注册中心地址</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="attr">server-addr:</span> <span class="number">192.168</span><span class="number">.2</span><span class="number">.148</span><span class="string">:8848</span></span><br><span class="line">        <span class="comment"># 是否临时实例，默认值为true，用的是AP架构；如果设置为false，就变成了持久实例，用的是CP架构</span></span><br><span class="line">        <span class="attr">ephemeral:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>只需要改把<code>ephemeral: false</code>就好了。</p>
+<h2 id="nacos自己实现的简化了的raft协议"><a href="#nacos自己实现的简化了的raft协议" class="headerlink" title="nacos自己实现的简化了的raft协议"></a>nacos自己实现的简化了的raft协议</h2><blockquote>
+<p>看的是nacos自己实现的raft协议</p>
+</blockquote>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>每个节点启动时，都会执行的一些必要初始化逻辑</p>
+<ol>
+<li><p>RaftCore#init</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RaftCore</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 把&#123;nacos.home&#125;/nacos/data/naming/data/中的文件加载到内存中</span></span><br><span class="line"><span class="comment">// 数据保存到成员变量datums中，该结构为这个原子map</span></span><br><span class="line">raftStore.loadDatums(notifier, datums);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 把&#123;nacos.home&#125;/nacos/data/naming/data/meta.properties的保存到Properties中</span></span><br><span class="line"><span class="comment">// 读取term，这个是raft中的概念，和zk中的epoch的概念一样，表意选举周期</span></span><br><span class="line"><span class="comment">// 这个值是在RaftPeerSet中维护的</span></span><br><span class="line">setTerm(NumberUtils.toLong(raftStore.loadMeta().getProperty(<span class="string">&quot;term&quot;</span>), <span class="number">0L</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册选举任务</span></span><br><span class="line">masterTask = GlobalExecutor.registerMasterElection(<span class="keyword">new</span> <span class="title class_">MasterElection</span>());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册心跳任务</span></span><br><span class="line">heartbeatTask = GlobalExecutor.registerHeartbeat(<span class="keyword">new</span> <span class="title class_">HeartBeat</span>());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册版本检查后的回调</span></span><br><span class="line"><span class="comment">// 这个是在1.4.0加入的</span></span><br><span class="line"><span class="comment">// 在1.4.0中使用sofa-jraft代替了nacos自己实现的raft协议</span></span><br><span class="line"><span class="comment">// 所以如果集群中所有的节点版本都大于等于1.4.0，那么就会使用sofa-jraft</span></span><br><span class="line">versionJudgement.registerObserver(isAllNewVersion -&gt; &#123;</span><br><span class="line">    stopWork = isAllNewVersion;</span><br><span class="line">    <span class="keyword">if</span> (stopWork) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            shutdown();</span><br><span class="line">            raftListener.removeOldRaftMetadata();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NacosException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NacosRuntimeException</span>(NacosException.SERVER_ERROR, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, <span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 订阅ValueChangeEvent事件</span></span><br><span class="line"><span class="comment">// 处理流程为 PersistentNotifier ---&gt;  对应的RecordListener</span></span><br><span class="line"><span class="comment">// 这个对应的对应的RecordListener就是Service，在Service初始化时添加到PersistentNotifier中的</span></span><br><span class="line"><span class="comment">// 其实就是和临时实例的一样，就是用来响应服务数据的变化的（更新注册表+udp通知客户端）</span></span><br><span class="line">NotifyCenter.registerSubscriber(notifier);</span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>RaftPeerSet</p>
+<p>初始化Raft协议中的节点信息，依赖于<code>ServerMemberManager</code>。</p>
+</li>
+</ol>
+<h3 id="Leader选举"><a href="#Leader选举" class="headerlink" title="Leader选举"></a>Leader选举</h3><p>投票看<code>MasterElection</code>，该类主要做的事：</p>
+<blockquote>
+<p>MasterElection这个任务是放在一个定时任务中处理，每500毫秒执行一次</p>
+</blockquote>
+<ol>
+<li><p>等待一段随机时间</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MasterElection#run</span></span><br><span class="line"><span class="comment">// 获取本机的</span></span><br><span class="line"><span class="type">RaftPeer</span> <span class="variable">local</span> <span class="operator">=</span> peers.local();</span><br><span class="line"><span class="comment">// local.leaderDueMs</span></span><br><span class="line"><span class="comment">// 第一次是0~15s内</span></span><br><span class="line"><span class="comment">// 之后是15s+(0~3s)</span></span><br><span class="line"><span class="comment">// 这个投票时间还是挺长的</span></span><br><span class="line"><span class="comment">// GlobalExecutor.TICK_PERIOD_MS = 500， 这个值也是MasterElection的执行周期</span></span><br><span class="line">local.leaderDueMs -= GlobalExecutor.TICK_PERIOD_MS;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查是否已经可以投票了</span></span><br><span class="line"><span class="keyword">if</span> (local.leaderDueMs &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// reset timeout</span></span><br><span class="line">local.resetLeaderDue();</span><br><span class="line">local.resetHeartbeatDue();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>发起投票</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MasterElection#sendVote</span></span><br><span class="line"><span class="type">RaftPeer</span> <span class="variable">local</span> <span class="operator">=</span> peers.get(NetUtils.localServer());</span><br><span class="line"><span class="comment">// 重制RaftPeer.voteFor = null</span></span><br><span class="line"><span class="comment">// 这样做是为了能够统计票</span></span><br><span class="line">peers.reset();</span><br><span class="line"></span><br><span class="line"><span class="comment">// term + 1</span></span><br><span class="line">local.term.incrementAndGet();</span><br><span class="line"><span class="comment">// 表示投票给自己</span></span><br><span class="line">local.voteFor = local.ip;</span><br><span class="line"><span class="comment">// 进入投票阶段</span></span><br><span class="line">local.state = RaftPeer.State.CANDIDATE;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">final</span> String server : peers.allServersWithoutMySelf()) &#123;</span><br><span class="line">  <span class="comment">// 发起一个客户端异步http</span></span><br><span class="line">  <span class="comment">// POST /nacos/vi/ns/raft/vote local会作为参数</span></span><br><span class="line">  <span class="comment">// 调用成功后RaftPeerSet.decideLeader(RaftPeer);来机票</span></span><br><span class="line">  <span class="comment">// 入场是返回值，表示接收方投给谁了</span></span><br><span class="line">  <span class="comment">// RaftPeerSet.decideLeader的核心就是选Leader，把leader赋值给RaftPeerSet.leader</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>当接收方收到一个投票后，其核心就是进行<code>term</code>的比较，比较规则是：</p>
+<ol>
+<li>term大的就投给谁</li>
+<li>term相同时，谁先发起投票就投给谁</li>
+</ol>
+<p>源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MasterElection#receivedVote</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> RaftPeer <span class="title function_">receivedVote</span><span class="params">(RaftPeer remote)</span> &#123;</span><br><span class="line">    <span class="comment">// 由于可能存在并发，所以加锁了，这样就能保证term相同时谁先发起投票就投给谁</span></span><br><span class="line">    <span class="keyword">if</span> (stopWork) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;old raft protocol already stop work&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!peers.contains(remote)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;can not find peer: &quot;</span> + remote.ip);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">RaftPeer</span> <span class="variable">local</span> <span class="operator">=</span> peers.get(NetUtils.localServer());</span><br><span class="line">    <span class="keyword">if</span> (remote.term.get() &lt;= local.term.get()) &#123;</span><br><span class="line">        <span class="comment">// 投给term值大的那个</span></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isEmpty(local.voteFor)) &#123;</span><br><span class="line">            local.voteFor = local.ip;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> local;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    local.resetLeaderDue();</span><br><span class="line">    local.state = RaftPeer.State.FOLLOWER;</span><br><span class="line">    local.voteFor = remote.ip;</span><br><span class="line">    local.term.set(remote.term.get());</span><br><span class="line">    <span class="keyword">return</span> local;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个投票的代码就这些，经过这写代码能保证只有一个节点成为Leader，其他都是Follower。但是，还有两个问题：</p>
+<ol>
+<li>经过上述的代码只是在发起投票的节点知道哪个节点是leader，其他节点还不知道leader节点。</li>
+<li>由于<code>MasterElection</code>是每500毫秒执行一次，所以要怎么在leader节点正常的时候，防止Follower节点发起投票。</li>
+</ol>
+<p>为了解决这两个问题，Leader节点就必须在完成选举后每隔一段时间就向Follower发起心跳。</p>
+<h3 id="数据同步（心跳）"><a href="#数据同步（心跳）" class="headerlink" title="数据同步（心跳）"></a>数据同步（心跳）</h3><p>Leadder发送心跳：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HeartBeat#sendBeat</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">sendBeat</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">RaftPeer</span> <span class="variable">local</span> <span class="operator">=</span> peers.local();</span><br><span class="line">    <span class="comment">// 只有Leader才需要发送心跳</span></span><br><span class="line">		<span class="keyword">if</span> (EnvUtil.getStandaloneMode() || local.state != RaftPeer.State.LEADER) &#123;</span><br><span class="line">		    <span class="keyword">return</span>;</span><br><span class="line">		&#125;</span><br><span class="line">  	<span class="comment">// 这个方法除了重置发起投票的时间外，还有阻止MasterElection任务执行的作用</span></span><br><span class="line">    <span class="comment">// 在这里其实就是防止leader发起选举</span></span><br><span class="line">  	local.resetLeaderDue();</span><br><span class="line">  	ObjectNode packet....</span><br><span class="line">    packet.replace(<span class="string">&quot;peer&quot;</span>, JacksonUtils.transferToJsonNode(local));</span><br><span class="line">  	<span class="comment">// array包含了一些持久实例的</span></span><br><span class="line">    packet.replace(<span class="string">&quot;datums&quot;</span>, array);</span><br><span class="line">   	<span class="keyword">for</span> (<span class="keyword">final</span> String server : peers.allServersWithoutMySelf()) &#123;</span><br><span class="line">      	<span class="comment">// 发起一个客户端异步http</span></span><br><span class="line">    		<span class="comment">// POST /nacos/v1/ns/raft/beat  </span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Follower接收到Leader的心跳包:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HeartBeat#receivedBeat</span></span><br><span class="line"><span class="keyword">public</span> RaftPeer <span class="title function_">receivedBeat</span><span class="params">(JsonNode beat)</span> &#123;</span><br><span class="line">  	<span class="type">RaftPeer</span> <span class="variable">local</span> <span class="operator">=</span> peers.local();</span><br><span class="line">  	<span class="comment">// leader节点信息</span></span><br><span class="line">		RaftPeer remote ....</span><br><span class="line">   	<span class="comment">//  有可能自己也发起其了选举（CANDIDATE）</span></span><br><span class="line">   	<span class="keyword">if</span> (local.state != RaftPeer.State.FOLLOWER) &#123;</span><br><span class="line">   	    <span class="comment">// mk follower</span></span><br><span class="line">   	    local.state = RaftPeer.State.FOLLOWER;</span><br><span class="line">   	    local.voteFor = remote.ip;</span><br><span class="line">   	&#125;</span><br><span class="line">  	<span class="comment">// 这个方法除了重置发起投票的时间外，还有阻止MasterElection任务执行的作用</span></span><br><span class="line">    <span class="comment">// 阻止Follower节点发起选举</span></span><br><span class="line">  	local.resetLeaderDue();</span><br><span class="line">  </span><br><span class="line">		<span class="comment">// 保存leader节点信息</span></span><br><span class="line">		peers.makeLeader(remote);</span><br><span class="line">  </span><br><span class="line">  	<span class="comment">// 判断哪些数据需要从leader拉取数据，哪些数据需要删除</span></span><br><span class="line">  	<span class="comment">// 删除的key只是那些不符合规则的可以而已，不会删除那些数据不一致的</span></span><br><span class="line">  	<span class="keyword">for</span> (Object object : beatDatums) &#123;</span><br><span class="line">      </span><br><span class="line">       <span class="comment">//	 这个的判断会导致Follower的数据会比Leader的新</span></span><br><span class="line">        <span class="keyword">if</span> (datums.containsKey(datumKey)</span><br><span class="line">            &amp;&amp; datums.get(datumKey).timestamp.get() &gt;= timestamp</span><br><span class="line">            &amp;&amp; processedCount &lt; beatDatums.size()) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    		</span><br><span class="line">      	<span class="comment">// 需要从leader拉取数据</span></span><br><span class="line">      	<span class="comment">// 发起一个客户端异步HTTP请求 GET  /nacos/v1/ns/raft/datum 参数：key</span></span><br><span class="line">  			<span class="comment">// 当请求完成时Callback执行逻辑如下：</span></span><br><span class="line">        <span class="comment">// 写到本地文件</span></span><br><span class="line">        raftStore.write(newDatum);</span><br><span class="line">				</span><br><span class="line">        <span class="comment">// 更新内存缓存</span></span><br><span class="line">        datums.put(newDatum.key, newDatum);</span><br><span class="line">      	</span><br><span class="line">      	<span class="comment">//更新注册表</span></span><br><span class="line">        notifier.notify(newDatum.key, DataOperation.CHANGE, newDatum.value);</span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="comment">// 删除非法数据</span></span><br><span class="line">    <span class="comment">// 这里删除都是那些不合法的</span></span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, Integer&gt; entry : receivedKeysMap.entrySet()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (entry.getValue() == <span class="number">0</span>) &#123;</span><br><span class="line">          	deleteDatum(entry.getKey());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>数据同步的代码也不复杂，从<code>HeartBeat#receivedBeat</code>的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">peers.makeLeader(remote);</span><br><span class="line">local.resetLeaderDue();</span><br></pre></td></tr></table></figure>
+
+<p>这两行代码就解答的上边的2个问题了。</p>
+<h3 id="写操作"><a href="#写操作" class="headerlink" title="写操作"></a>写操作</h3><p>在面已经知道了，服务注册都会走到这里</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ServiceManager</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addInstance</span><span class="params">(String namespaceId, String serviceName, <span class="type">boolean</span> ephemeral, Instance... ips)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里会创建一个Key</span></span><br><span class="line">    <span class="comment">// 对于临时节点key=com.alibaba.nacos.naming.iplist.ephemeral.$&#123;namespaceId&#125;##$&#123;serviceName&#125;</span></span><br><span class="line">    <span class="comment">// 对于持久节点key=com.alibaba.nacos.naming.iplist.$&#123;namespaceId&#125;##$&#123;serviceName&#125;</span></span><br><span class="line">    <span class="comment">// 区别就是有没有&quot;ephemeral.&quot;这个字符床</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> KeyBuilder.buildInstanceListKey(namespaceId, serviceName, ephemeral);</span><br><span class="line"></span><br><span class="line">    <span class="type">Service</span> <span class="variable">service</span> <span class="operator">=</span> getService(namespaceId, serviceName);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (service) &#123;</span><br><span class="line">        List&lt;Instance&gt; instanceList = addIpAddresses(service, ephemeral, ips);</span><br><span class="line"></span><br><span class="line">        <span class="type">Instances</span> <span class="variable">instances</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Instances</span>();</span><br><span class="line">        instances.setInstanceList(instanceList);</span><br><span class="line"></span><br><span class="line">     		<span class="comment">// 这里的consistencyService的实现是DelegateConsistencyServiceImpl</span></span><br><span class="line">      	<span class="comment">// 该类是一个委托类，会根据是否持久实例和临时实例来选择不同的ConsistencyService</span></span><br><span class="line">        consistencyService.put(key, instances);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于临时实例来说<code>consistencyService</code>的实现类为<code>PersistentConsistencyServiceDelegateImpl</code>，但它是一个代理类。</p>
+<p>在集群模式下，所有节点的版本大于等于1.4.0的<code>consistencyService</code>对应的实例为<code>PersistentServiceProcessor</code>。</p>
+<p>如有有个节点低于1.4.0就用<code>RaftConsistencyServiceImpl</code>。</p>
+<p>这两个的区别就是使用的raft协议实现不同，<code>PersistentServiceProcessor</code>用的是<a target="_blank" rel="noopener" href="https://github.com/sofastack/sofa-jraft">sofa-jraft</a>而<code>RaftConsistencyServiceImpl</code>是Nacos自己实现。</p>
+<p>这里看<code>RaftConsistencyServiceImpl</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RaftConsistencyServiceImpl的put</span></span><br><span class="line">raftCore.signalPublish(key, value);</span><br></pre></td></tr></table></figure>
+
+<h4 id="Leader节点"><a href="#Leader节点" class="headerlink" title="Leader节点"></a>Leader节点</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RaftCore#signalPublish</span></span><br><span class="line"><span class="type">Datum</span> <span class="variable">datum</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Datum</span>();</span><br><span class="line">...</span><br><span class="line"><span class="comment">// 从这里可以看出datum.timestamp这个字读只是一个持久化次数计数器</span></span><br><span class="line"><span class="keyword">if</span> (getDatum(key) == <span class="literal">null</span>) &#123;</span><br><span class="line">    datum.timestamp.set(<span class="number">1L</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    datum.timestamp.set(getDatum(key).timestamp.incrementAndGet());</span><br><span class="line">&#125;</span><br><span class="line">onPublish(datum, peers.local());</span><br></pre></td></tr></table></figure>
+
+<p><code>onPublish</code>方法没必要详细看了，该方法的逻辑如下：</p>
+<ol>
+<li><code> raftStore.write(datum)</code>，写入文件完成持久化</li>
+<li><code>datums.put(datum.key, datum)</code>，更新文件缓存数据</li>
+<li><code>local.term.addAndGet(PUBLISH_TERM_INCREASE_COUNT)</code>，更新Leader的term（+100）</li>
+<li><code>raftStore.updateTerm(local.term.get())</code>， 把term持久化到<code>meta.properties</code>文件中</li>
+<li><code>NotifyCenter.publishEvent(ValueChangeEvent</code>，发起一个ValueChangeEvent事件，用来触发Service的onChange方法，进行注册表的更新和发udp数据包给客户端</li>
+</ol>
+<p>执行完<code>onPublish</code>后就同步到Follower节点了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RaftCore#signalPublish</span></span><br><span class="line"><span class="comment">// 设置CountDownLatch的数值为过半节点数</span></span><br><span class="line"><span class="keyword">final</span> <span class="type">CountDownLatch</span> <span class="variable">latch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(peers.majorityCount());</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">final</span> String server : peers.allServersIncludeMyself()) &#123;</span><br><span class="line">		<span class="keyword">if</span> (isLeader(server)) &#123;</span><br><span class="line">		    latch.countDown();</span><br><span class="line">		    <span class="keyword">continue</span>;		</span><br><span class="line">		&#125;</span><br><span class="line">  	<span class="comment">// 发起一个客户端异步的HTTP请求，POST /nacos/v1/ns/raft/datum/commit 参数：content</span></span><br><span class="line">  	<span class="comment">// Callback的处理流程如下</span></span><br><span class="line">  	latch.countDown();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!latch.await(<span class="number">5000</span>, TimeUnit.MILLISECONDS))&#123;</span><br><span class="line">  	<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但Follower节点接收到<code>POST raft/datum/commit </code>请求也会执行<code>RaftCore#onPublish</code>方法，在这里，第一步会先进行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (source.term.get() &lt; local.term.get()) &#123;</span><br><span class="line">  	<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果请求的数据的中的<code>term</code>小于本地的<code>term</code>，那就拒绝请求</p>
+<blockquote>
+<p>这逻辑在Leader也有，但是对于Leader来说是不会发生的而已</p>
+</blockquote>
+<p>还有第3点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getLeader().term.set(source.term.get());</span><br><span class="line">local.term.set(getLeader().term.get());</span><br></pre></td></tr></table></figure>
+
+<p>会同步leader的走起。其他就是一样的了。</p>
+<p>从整个流程可以看出，<code>term</code>在这里的实现已经不止是<code>leader任期</code>了。而是变成了<code>写操作的周期</code>了。这样每次写时都增大该值也就保证了只有最新写入的节点才会成为Leader。</p>
+<h4 id="Follower节点"><a href="#Follower节点" class="headerlink" title="Follower节点"></a>Follower节点</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RaftCore#signalPublish</span></span><br><span class="line">raftProxy.proxyPostLarge(leader.ip, API_PUB, params.toString(), parameters);</span><br></pre></td></tr></table></figure>
+
+<p>Follower节点只是向leader节点发起了一个HTTP请求，让Leader完成写操作。HTTP地址如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST  /nacos/v1/ns/raft/datum</span><br></pre></td></tr></table></figure>
+
+<p>而这个请求最终还是调用到Leader的<code>RaftCore#signalPublish</code>方法而已。</p>
+<h3 id="如果Leader挂了"><a href="#如果Leader挂了" class="headerlink" title="如果Leader挂了"></a>如果Leader挂了</h3><p>leader挂了后，由于Follower没有收到Leader的心跳包，也就是说不会执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">local.resetLeaderDue();</span><br></pre></td></tr></table></figure>
+
+<p>来重置时间，所以过一段时间后，某些Follower就会发起选举重新选一台Leader。</p>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ol>
+<li>允许Follower节点的数据比Leader新（数据会出现不一致）</li>
+<li>每一次写都会更新Leader的<code>term</code>值，虽然这样能保证Leader都是有最新的数据，但会在出现重新选举后，之前的Leader重新加入集群时，<code>term</code>值可能会比新的Leader大</li>
+<li>Leader写完后，向Follower发起同步时不使用2PC，而是直接发起一个完整的事物操作。也正是这样，如果这次写操作有一半的机器写失败了，但有一部分机器成功，这样就会出现数据不一致的情况</li>
+<li>重新选Leader的时间过长</li>
+</ol>
+<p>实现得不是很严谨，还是有很多问题的。</p>
+<blockquote>
+<p>看nacos2.0再看<a target="_blank" rel="noopener" href="https://github.com/sofastack/sofa-jraft">sofa-jraft</a>吧。 </p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629964.jpg" alt="Nacos源码剖析-集群数据一致性(持久化实例CP模式Raft协议实现)"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/springcloud/10-2Nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83CP%E6%9E%B6%E6%9E%84Raft%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">http://sv.pointcut.cc/blog/springcloud/10-2Nacos注册中心CP架构Raft源码分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/springcloud/">springcloud</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/springcloud/11-nacos%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83/">11-nacos配置中心</a><a class="next" href="/blog/springcloud/10-1Nacos%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83AP%E6%9E%B6%E6%9E%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">10-1Nacos注册中心AP架构源码分析</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#nacos%E8%87%AA%E5%B7%B1%E5%AE%9E%E7%8E%B0%E7%9A%84%E7%AE%80%E5%8C%96%E4%BA%86%E7%9A%84raft%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.</span> <span class="toc-text">nacos自己实现的简化了的raft协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.1.</span> <span class="toc-text">初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Leader%E9%80%89%E4%B8%BE"><span class="toc-number">1.2.</span> <span class="toc-text">Leader选举</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%EF%BC%88%E5%BF%83%E8%B7%B3%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">数据同步（心跳）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%99%E6%93%8D%E4%BD%9C"><span class="toc-number">1.4.</span> <span class="toc-text">写操作</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Leader%E8%8A%82%E7%82%B9"><span class="toc-number">1.4.1.</span> <span class="toc-text">Leader节点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Follower%E8%8A%82%E7%82%B9"><span class="toc-number">1.4.2.</span> <span class="toc-text">Follower节点</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E6%9E%9CLeader%E6%8C%82%E4%BA%86"><span class="toc-number">1.5.</span> <span class="toc-text">如果Leader挂了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.6.</span> <span class="toc-text">存在的问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

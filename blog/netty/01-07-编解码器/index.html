@@ -1,0 +1,343 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>01-07-编解码器 | XYZhi's学习笔记</title><meta name="keywords" content="netty"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="当你通过Netty发送或者接收一个消息的时候，就将会发生一次数据转换。入站消息会被解码；也就是说，从字节转换为另一种格式，通常是一个Java对象。如果是出站消息，则会发生相反方向的转换：它将从它的当前格式被编码为字节。这两种方向的转换的原因很简单：网络数据总是一系列的字节。 对应于特定的需要，Netty为编码器和解码器提供了不同类型的抽象类。这些基类的名称将类似于ByteToMessageDeco">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01-07-编解码器">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/netty/01-07-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="当你通过Netty发送或者接收一个消息的时候，就将会发生一次数据转换。入站消息会被解码；也就是说，从字节转换为另一种格式，通常是一个Java对象。如果是出站消息，则会发生相反方向的转换：它将从它的当前格式被编码为字节。这两种方向的转换的原因很简单：网络数据总是一系列的字节。 对应于特定的需要，Netty为编码器和解码器提供了不同类型的抽象类。这些基类的名称将类似于ByteToMessageDeco">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)">
+<meta property="article:published_time" content="2021-11-23T12:00:08.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:58.162Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="netty">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/netty/01-07-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '01-07-编解码器',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:58'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">01-07-编解码器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-23T12:00:08.000Z" title="发表于 2021-11-23 20:00:08">2021-11-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:58.162Z" title="更新于 2022-03-23 17:03:58">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="01-07-编解码器"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>当你通过Netty发送或者接收一个消息的时候，就将会发生一次数据转换。入站消息会被解码；也就是说，从字节转换为另一种格式，通常是一个Java对象。如果是出站消息，则会发生相反方向的转换：它将从它的当前格式被编码为字节。<strong>这两种方向的转换的原因很简单：网络数据总是一系列的字节。</strong></p>
+<p>对应于特定的需要，Netty为编码器和解码器提供了不同类型的抽象类。这些基类的名称将类似于ByteToMessageDecoder、MessageToByteEncoder或MessageToMessageEncoder。对于特殊的类型，比如Protocol Buffers提供了ProtobufEncoder和ProtobufDecoder这样的名称。</p>
+<p>所有由Netty提供的编码器&#x2F;解码器适配器类都实现了ChannelOutboundHandler或者ChannelInboundHandler接口。</p>
+<h2 id="解决粘包-x2F-半包问题"><a href="#解决粘包-x2F-半包问题" class="headerlink" title="解决粘包&#x2F;半包问题"></a>解决粘包&#x2F;半包问题</h2><p>参见<a href="./vip-v2-netty/netty-basic/src/main/java/cn/enjoyedu/nettybasic/splicing/demo">cn.enjoyedu.nettybasic.splicing.demo</a>下的代码<br>该代码存在两个问题<br>第一个client在调用writeAndFlush后才把数据发送到server<br>第二个client把第一次把数据发到server时，有部分数据不完整，因为缓存区满了，放不下，只能等到下一次发送。<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427433.jpg" alt="-w536"></p>
+<p>这两个问题就是典型的TCP粘包&#x2F;半包问题。</p>
+<h3 id="什么是TCP粘包半包？"><a href="#什么是TCP粘包半包？" class="headerlink" title="什么是TCP粘包半包？"></a>什么是TCP粘包半包？</h3><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427434.jpg"><br>假设客户端分别发送了两个数据包D1和D2给服务端，由于服务端一次读取到的字节数是不确定的，故可能存在以下4种情况。</p>
+<ol>
+<li>服务端分两次读取到了两个独立的数据包，分别是D1和D2，没有粘包和拆包；</li>
+<li>服务端一次接收到了两个数据包，D1和D2粘合在一起，被称为TCP粘包；</li>
+<li>服务端分两次读取到了两个数据包，第一次读取到了完整的D1包和D2包的部分内容，第二次读取到了D2包的剩余内容，这被称为TCP拆包；</li>
+<li>服务端分两次读取到了两个数据包，第一次读取到了D1包的部分内容D1_1，第二次读取到了D1包的剩余内容D1_2和D2包的整包。</li>
+</ol>
+<p>如果此时服务端TCP接收滑窗非常小，而数据包D1和D2比较大，很有可能会发生第五种可能，即服务端分多次才能将D1和D2包接收完全，期间发生多次拆包。</p>
+<h3 id="TCP粘包-x2F-半包发生的原因"><a href="#TCP粘包-x2F-半包发生的原因" class="headerlink" title="TCP粘包&#x2F;半包发生的原因"></a>TCP粘包&#x2F;半包发生的原因</h3><p>由于TCP协议本身的机制（面向连接的可靠地协议-三次握手机制）客户端与服务器会维持一个连接（Channel），数据在连接不断开的情况下，可以持续不断地将多个数据包发往服务器，但是如果发送的网络数据包太小，那么他本身会启用Nagle算法（可配置是否启用）对较小的数据包进行合并（基于此，TCP的网络延迟要UDP的高些）然后再发送（超时或者包大小足够）。那么这样的话，服务器在接收到消息（数据流）的时候就无法区分哪些数据包是客户端自己分开发送的，这样产生了粘包；服务器在接收到数据库后，放到缓冲区中，如果消息没有被及时从缓存区取走，下次在取数据的时候可能就会出现一次取出多个数据包的情况，造成粘包现象</p>
+<p><font color="red"><strong>注意</strong></font>UDP：本身作为无连接的不可靠的传输协议（适合频繁发送较小的数据包），他不会对数据包进行合并发送（也就没有Nagle算法之说了），他直接是一端发送什么数据，直接就发出去了，既然他不会对数据合并，每一个数据包都是完整的（数据+UDP头+IP头等等发一次数据封装一次）也就没有粘包一说了。</p>
+<p>分包产生的原因就简单的多：可能是IP分片传输导致的，也可能是传输过程中丢失部分包导致出现的半包，还有可能就是一个包可能被分成了两次传输，在取数据的时候，先取到了一部分（还可能与接收的缓冲区大小有关系），总之就是一个数据包被分成了多次接收。更具体的原因有三个，分别如下:</p>
+<ol>
+<li>应用程序写入数据的字节大小大于套接字发送缓冲区的大小</li>
+<li>进行MSS大小的TCP分段。MSS是最大报文段长度的缩写。MSS是TCP报文段中的数据字段的最大长度。数据字段加上TCP首部才等于整个的TCP报文段。所以MSS并不是TCP报文段的最大长度，而是：MSS&#x3D;TCP报文段长度-TCP首部长度</li>
+<li>以太网的payload大于MTU进行IP分片。MTU指：一种通信协议的某一层上面所能通过的最大数据包大小。如果IP层有一个数据包要传，而且数据的长度比链路层的MTU大，那么IP层就会进行分片，把数据包分成托干片，让每一片都不超过MTU。注意，IP分片可以发生在原始发送端主机上，也可以发生在中间路由器上。</li>
+</ol>
+<h3 id="解决粘包半包问题"><a href="#解决粘包半包问题" class="headerlink" title="解决粘包半包问题"></a>解决粘包半包问题</h3><p>由于底层的TCP无法理解上层的业务数据，所以在底层是无法保证数据包不被拆分和重组的，这个问题只能通过上层的应用协议栈设计来解决，根据业界的主流协议的解决方案，可以归纳如下。</p>
+<ol>
+<li>在包尾增加分割符，比如回车换行符进行分割，例如FTP协议；</li>
+<li>消息定长，例如每个报文的大小为固定长度200字节，如果不够，空位补空格；</li>
+<li>将消息分为消息头和消息体，消息头中包含表示消息总长度（或者消息体长度）的字段，通常设计思路为消息头的第一个字段使用int32来表示消息的总长度，LengthFieldBasedFrameDecoder。</li>
+</ol>
+<p>在netty提供了对应的handler实现：<br>第一种：LineBasedFrameDecoder和DelimiterBasedFrameDecoder参见<a href="./vip-v2-netty/netty-basic/src/main/java/cn/enjoyedu/nettybasic/splicing/delimiter">cn.enjoyedu.nettybasic.splicing.linebase</a>和<a href="./netty/vip-v2-netty/netty-basic/src/main/java/cn/enjoyedu/nettybasic/splicing/linebase">cn.enjoyedu.nettybasic.splicing.delimiter</a>下的代码</p>
+<p>第二种：FixedLengthFrameDecoder参见<a href="./vip-v2-netty/netty-basic/src/main/java/cn/enjoyedu/nettybasic/splicing/fixed">cn.enjoyedu.nettybasic.splicing.fixed</a>下的代码</p>
+<p>第三种：LengthFieldBasedFrameDecoder参见<a href="./vip-v2-netty/netty-basic/src/main/java/cn/enjoyedu/nettybasic/serializable/msgpack">cn.enjoyedu.nettybasic.serializable.msgpack</a></p>
+<h2 id="解码器"><a href="#解码器" class="headerlink" title="解码器"></a>解码器</h2><p>解码器是负责将入站数据从一种格式转换到另一种格式的，所以Netty的解码器实现了 ChannelInboundHandler。</p>
+<ul>
+<li>将字节解码为消息–ByteToMessageDecoder和ReplayingDecoder。</li>
+<li>将一种消息类型解码为另一种–MessageToMessageDecoder。</li>
+</ul>
+<h3 id="抽象类-ByteToMessageDecoder—-将字节解码为消息"><a href="#抽象类-ByteToMessageDecoder—-将字节解码为消息" class="headerlink" title="抽象类 ByteToMessageDecoder—-将字节解码为消息"></a>抽象类 ByteToMessageDecoder—-将字节解码为消息</h3><p>由于你不可能知道远程节点是否会一次性地发送一个完整的消息，所以这个类会对入站数据进行缓冲，直到它准备好处理。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427426.jpg" alt="-w1011"></p>
+<p><code>decode(ChannelHandlerContext ctx,ByteBuf in,List&lt;Object&gt; out)</code><br>这是你必须实现的唯一抽象方法。decode()方法被调用时将会传入一个包含了传入数据的ByteBuf，以及一个用来添加解码消息的List。对这个方法的调用将会重复进行，直到确定没有新的元素被添加到该List，或者该ByteBuf 中没有更多可读取的字节时为止。然后，如果该List不为空，那么它的内容将会被传递给ChannelPipeline 中的下一个ChannelInboundHandler。</p>
+<h4 id="抽象类-ReplayingDecoder—ByteToMessageDecoder的扩展"><a href="#抽象类-ReplayingDecoder—ByteToMessageDecoder的扩展" class="headerlink" title="抽象类 ReplayingDecoder—ByteToMessageDecoder的扩展"></a>抽象类 ReplayingDecoder—ByteToMessageDecoder的扩展</h4><p>ReplayingDecoder扩展了ByteToMessageDecoder类。它通过使用一个自定义的ByteBuf实现，ReplayingDecoderByteBuf，使得我们不必调用readableBytes()方法。</p>
+<h3 id="抽象类-MessageToMessageDecoder—将一种消息类型解码为另一种"><a href="#抽象类-MessageToMessageDecoder—将一种消息类型解码为另一种" class="headerlink" title="抽象类 MessageToMessageDecoder—将一种消息类型解码为另一种"></a>抽象类 MessageToMessageDecoder—将一种消息类型解码为另一种</h3><p>在两个消息格式之间进行转换（例如，从String-&gt;Integer）<br><code>decode(ChannelHandlerContext ctx,I msg,List&lt;Object&gt; out)</code><br>对于每个需要被解码为另一种格式的入站消息来说，该方法都将会被调用。解码消息随后会被传递给ChannelPipeline中的下一个ChannelInboundHandler</p>
+<p>MessageToMessageDecoder<T>，T代表源数据的类型</p>
+<h3 id="TooLongFrameException"><a href="#TooLongFrameException" class="headerlink" title="TooLongFrameException"></a>TooLongFrameException</h3><p>由于Netty 是一个异步框架，所以需要在字节可以解码之前在内存中缓冲它们。因此，不能让解码器缓冲大量的数据以至于耗尽可用的内存。为了解除这个常见的顾虑，Netty 提供了TooLongFrameException 类，其将由解码器在帧超出指定的大小限制时抛出。</p>
+<p>为了避免这种情况，你可以设置一个最大字节数的阈值，如果超出该阈值，则会导致抛出一个TooLongFrameException（随后会被ChannelHandler.exceptionCaught()方法捕获）。然后，如何处理该异常则完全取决于该解码器的用户。某些协议（如HTTP）可能允许你返回一个特殊的响应。而在其他的情况下，唯一的选择可能就是关闭对应的连接。<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427427.jpg"></p>
+<h2 id="编码器"><a href="#编码器" class="headerlink" title="编码器"></a>编码器</h2><p>解码器的功能正好相反。Netty 提供了一组类，用于帮助你编写具有以下功能的编码器：</p>
+<ul>
+<li>将消息编码为字节；MessageToByteEncoder</li>
+<li>将消息编码为消息：MessageToMessageEncoder<T>，T代表源数据的类型</li>
+</ul>
+<h3 id="抽象类-MessageToByteEncoder—将消息编码为字节"><a href="#抽象类-MessageToByteEncoder—将消息编码为字节" class="headerlink" title="抽象类 MessageToByteEncoder—将消息编码为字节"></a>抽象类 MessageToByteEncoder—将消息编码为字节</h3><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427428.jpg"><br>encode()方法是你需要实现的唯一抽象方法。它被调用时将会传入要被该类编码为ByteBuf的（类型为I的）出站消息。该ByteBuf随后将会被转发给ChannelPipeline中的下一个ChannelOutboundHandler.</p>
+<h3 id="抽象类-MessageToMessageEncoder—将消息编码为消息"><a href="#抽象类-MessageToMessageEncoder—将消息编码为消息" class="headerlink" title="抽象类 MessageToMessageEncoder—将消息编码为消息"></a>抽象类 MessageToMessageEncoder—将消息编码为消息</h3><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427429.jpg"><br>这是你需要实现的唯一方法。每个通过write()方法写入的消息都将会被传递给encode()方法，以编码为一个或者多个出站消息。随后，这些出站消息将会被转发给ChannelPipeline中的下一个ChannelOutboundHandler</p>
+<h3 id="编解码器类"><a href="#编解码器类" class="headerlink" title="编解码器类"></a>编解码器类</h3><p>虽然我们一直将解码器和编码器作为单独的实体讨论，但是你有时将会发现在同一个类中管理入站和出站数据和消息的转换是很有用的。Netty的抽象编解码器类正好用于这个目的,因为它们每个都将捆绑一个解码器&#x2F;编码器对，以处理我们一直在学习的这两种类型的操作。这些类同时实现了ChannelInboundHandler 和ChannelOutboundHandler 接口。</p>
+<h4 id="抽象类-ByteToMessageCodec"><a href="#抽象类-ByteToMessageCodec" class="headerlink" title="抽象类 ByteToMessageCodec"></a>抽象类 ByteToMessageCodec</h4><p>它结合了ByteToMessageDecoder以及它的逆向——MessageToByteEncoder。<br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427430.jpg"></p>
+<h4 id="抽象类-MessageToMessageCodec"><a href="#抽象类-MessageToMessageCodec" class="headerlink" title="抽象类 MessageToMessageCodec"></a>抽象类 MessageToMessageCodec</h4><p>MessageToMessageCodec 是一个参数化的类,定义如下:<br><code>public abstract class MessageToMessageCodec&lt;INBOUND_IN,OUTBOUND_IN&gt;</code><br><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427431.jpg"></p>
+<h4 id="CombinedChannelDuplexHandler-类"><a href="#CombinedChannelDuplexHandler-类" class="headerlink" title="CombinedChannelDuplexHandler 类"></a>CombinedChannelDuplexHandler 类</h4><p>CombinedChannelDuplexHandler声明为:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CombinedChannelDuplexHandler</span>&lt;I <span class="keyword">extends</span> <span class="title class_">ChannelInboundHandler</span>, O <span class="keyword">extends</span> <span class="title class_">ChannelOutboundHandler</span>&gt;</span><br><span class="line">        <span class="keyword">extends</span> <span class="title class_">ChannelDuplexHandler</span></span><br></pre></td></tr></table></figure>
+<p>这个类充当了ChannelInboundHandler和ChannelOutboundHandler(该类的类型参数 I 和 O)的容器。通过提供分别继承了解码器类和编码器类的类型,我们可以实现一个编解码器,而又不必直接扩展抽象的编解码器类。<br>初始化代码</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427432.jpg"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/netty/01-07-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8/">http://sv.pointcut.cc/blog/netty/01-07-编解码器/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/netty/">netty</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/netty/%E8%A7%A3%E5%86%B3%E7%B2%98%E5%8C%85%E5%92%8C%E5%8D%8A%E5%8C%85%E9%97%AE%E9%A2%98/">解决粘包和半包问题</a><a class="next" href="/blog/netty/01-06-%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/">01-06-单元测试</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E7%B2%98%E5%8C%85-x2F-%E5%8D%8A%E5%8C%85%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">解决粘包&#x2F;半包问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFTCP%E7%B2%98%E5%8C%85%E5%8D%8A%E5%8C%85%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是TCP粘包半包？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TCP%E7%B2%98%E5%8C%85-x2F-%E5%8D%8A%E5%8C%85%E5%8F%91%E7%94%9F%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="toc-number">1.2.</span> <span class="toc-text">TCP粘包&#x2F;半包发生的原因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E7%B2%98%E5%8C%85%E5%8D%8A%E5%8C%85%E9%97%AE%E9%A2%98"><span class="toc-number">1.3.</span> <span class="toc-text">解决粘包半包问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E7%A0%81%E5%99%A8"><span class="toc-number">2.</span> <span class="toc-text">解码器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-ByteToMessageDecoder%E2%80%94-%E5%B0%86%E5%AD%97%E8%8A%82%E8%A7%A3%E7%A0%81%E4%B8%BA%E6%B6%88%E6%81%AF"><span class="toc-number">2.1.</span> <span class="toc-text">抽象类 ByteToMessageDecoder—-将字节解码为消息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-ReplayingDecoder%E2%80%94ByteToMessageDecoder%E7%9A%84%E6%89%A9%E5%B1%95"><span class="toc-number">2.1.1.</span> <span class="toc-text">抽象类 ReplayingDecoder—ByteToMessageDecoder的扩展</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-MessageToMessageDecoder%E2%80%94%E5%B0%86%E4%B8%80%E7%A7%8D%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E8%A7%A3%E7%A0%81%E4%B8%BA%E5%8F%A6%E4%B8%80%E7%A7%8D"><span class="toc-number">2.2.</span> <span class="toc-text">抽象类 MessageToMessageDecoder—将一种消息类型解码为另一种</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TooLongFrameException"><span class="toc-number">2.3.</span> <span class="toc-text">TooLongFrameException</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">编码器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-MessageToByteEncoder%E2%80%94%E5%B0%86%E6%B6%88%E6%81%AF%E7%BC%96%E7%A0%81%E4%B8%BA%E5%AD%97%E8%8A%82"><span class="toc-number">3.1.</span> <span class="toc-text">抽象类 MessageToByteEncoder—将消息编码为字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-MessageToMessageEncoder%E2%80%94%E5%B0%86%E6%B6%88%E6%81%AF%E7%BC%96%E7%A0%81%E4%B8%BA%E6%B6%88%E6%81%AF"><span class="toc-number">3.2.</span> <span class="toc-text">抽象类 MessageToMessageEncoder—将消息编码为消息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%B1%BB"><span class="toc-number">3.3.</span> <span class="toc-text">编解码器类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-ByteToMessageCodec"><span class="toc-number">3.3.1.</span> <span class="toc-text">抽象类 ByteToMessageCodec</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB-MessageToMessageCodec"><span class="toc-number">3.3.2.</span> <span class="toc-text">抽象类 MessageToMessageCodec</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CombinedChannelDuplexHandler-%E7%B1%BB"><span class="toc-number">3.3.3.</span> <span class="toc-text">CombinedChannelDuplexHandler 类</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

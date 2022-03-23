@@ -1,0 +1,449 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>14-Nacos配置中心源码 | XYZhi's学习笔记</title><meta name="keywords" content="springcloud"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="配置中心架构  Nacos配置中心客户端使用这里看下配置中心客户端的时候 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253public class ConfigServerDemo &amp;#123;    public static void main(St">
+<meta property="og:type" content="article">
+<meta property="og:title" content="14-Nacos配置中心源码">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/springcloud/14-Nacos%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%BA%90%E7%A0%81/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="配置中心架构  Nacos配置中心客户端使用这里看下配置中心客户端的时候 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253public class ConfigServerDemo &amp;#123;    public static void main(St">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg">
+<meta property="article:published_time" content="2021-11-27T12:00:22.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:56.839Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="springcloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/springcloud/14-Nacos%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%BA%90%E7%A0%81/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '14-Nacos配置中心源码',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:56'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">14-Nacos配置中心源码</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-27T12:00:22.000Z" title="发表于 2021-11-27 20:00:22">2021-11-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:56.839Z" title="更新于 2022-03-23 17:03:56">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/">开源框架</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>14分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="14-Nacos配置中心源码"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="配置中心架构"><a href="#配置中心架构" class="headerlink" title="配置中心架构"></a>配置中心架构</h2><p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629980.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629981.png" alt="img"></p>
+<h2 id="Nacos配置中心客户端使用"><a href="#Nacos配置中心客户端使用" class="headerlink" title="Nacos配置中心客户端使用"></a>Nacos配置中心客户端使用</h2><p>这里看下配置中心客户端的时候</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ConfigServerDemo</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NacosException, InterruptedException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">serverAddr</span> <span class="operator">=</span> <span class="string">&quot;localhost:8848&quot;</span>;</span><br><span class="line">        <span class="type">String</span> <span class="variable">dataId</span> <span class="operator">=</span> <span class="string">&quot;nacos-config-demo.yaml&quot;</span>;</span><br><span class="line">        <span class="type">String</span> <span class="variable">group</span> <span class="operator">=</span> <span class="string">&quot;DEFAULT_GROUP&quot;</span>;</span><br><span class="line">        <span class="type">Properties</span> <span class="variable">properties</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Properties</span>();</span><br><span class="line">        properties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//获取配置中心服务</span></span><br><span class="line">        <span class="type">ConfigService</span> <span class="variable">configService</span> <span class="operator">=</span> NacosFactory.createConfigService(properties);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//从配置中心拉取配置</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">content</span> <span class="operator">=</span> configService.getConfig(dataId, group, <span class="number">5000</span>);</span><br><span class="line">        System.out.println(content);</span><br><span class="line">        <span class="comment">//注册监听器</span></span><br><span class="line">        configService.addListener(dataId, group, <span class="keyword">new</span> <span class="title class_">Listener</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">receiveConfigInfo</span><span class="params">(String configInfo)</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;感知配置变化:&quot;</span> + configInfo);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> Executor <span class="title function_">getExecutor</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//发布配置</span></span><br><span class="line">        <span class="comment">//boolean isPublishOk = configService.publishConfig(dataId, group, &quot;content&quot;);</span></span><br><span class="line">        <span class="comment">//System.out.println(isPublishOk);</span></span><br><span class="line">        <span class="comment">//发送properties格式</span></span><br><span class="line">        configService.publishConfig(dataId, group,<span class="string">&quot;common.age=30&quot;</span>, ConfigType.PROPERTIES.getType());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">        <span class="comment">//从配置中心拉取配置</span></span><br><span class="line">        content = configService.getConfig(dataId, group, <span class="number">5000</span>);</span><br><span class="line">        System.out.println(content);</span><br><span class="line"></span><br><span class="line"><span class="comment">//        boolean isRemoveOk = configService.removeConfig(dataId, group);</span></span><br><span class="line"><span class="comment">//        System.out.println(isRemoveOk);</span></span><br><span class="line"><span class="comment">//        Thread.sleep(3000);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//        content = configService.getConfig(dataId, group, 5000);</span></span><br><span class="line"><span class="comment">//        System.out.println(content);</span></span><br><span class="line"><span class="comment">//        Thread.sleep(300000);</span></span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        Thread.sleep(Integer.MAX_VALUE);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Nacos-配置中心客户端原理"><a href="#Nacos-配置中心客户端原理" class="headerlink" title="Nacos 配置中心客户端原理"></a>Nacos 配置中心客户端原理</h2><p>nacos配置中心客户端是使用了Spring cloud的 <code>PropertySourceLocator</code>扩展，来完成配置的拉取的。原理也在上边讲了。在该接口的执行阶段，<code>ConfigurableEnvironment</code>完成初始化了。在nacos-config中提供了<code>NacosPropertySourceLocator</code>，用来加载nacos server的配置，该类的核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NacosPropertySourceLocator</span></span><br><span class="line"><span class="comment">// 加载共享配置文件</span></span><br><span class="line">loadSharedConfiguration(composite);</span><br><span class="line"><span class="comment">// 加载扩展配置文件</span></span><br><span class="line">loadExtConfiguration(composite) &#123;</span><br><span class="line">  <span class="keyword">for</span> ( NacosConfigProperties.Config config : getExtensionConfigs()) &#123;</span><br><span class="line">    loadNacosDataIfPresent()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 加载应用配置文件</span></span><br><span class="line">loadApplicationConfiguration(composite, dataIdPrefix, nacosConfigProperties, env) &#123;</span><br><span class="line">   	<span class="comment">// 去加载$&#123;spring.application.name&#125;</span></span><br><span class="line">		loadNacosDataIfPresent(compositePropertySource, dataIdPrefix, nacosGroup,</span><br><span class="line">    <span class="comment">// 去加载$&#123;spring.application.name&#125;.$&#123;spring.cloud.nacos.config.file-extension&#125; </span></span><br><span class="line">		loadNacosDataIfPresent(compositePropertySource,</span><br><span class="line">						dataIdPrefix + DOT + fileExtension, nacosGroup, fileExtension, <span class="literal">true</span>);</span><br><span class="line">   	<span class="comment">// 去加载$&#123;spring.application.name&#125;.$&#123;profile&#125;.$&#123;spring.cloud.nacos.config.file-extension&#125; </span></span><br><span class="line">		<span class="keyword">for</span> (String profile : environment.getActiveProfiles()) &#123;</span><br><span class="line">			<span class="type">String</span> <span class="variable">dataId</span> <span class="operator">=</span> dataIdPrefix + SEP1 + profile + DOT + fileExtension;</span><br><span class="line">			loadNacosDataIfPresent(compositePropertySource, dataId, nacosGroup,</span><br><span class="line">					fileExtension, <span class="literal">true</span>);</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法的执行顺序就已经说明了Nacos 配置的优先级了，后面加载的会覆盖前面加载的的。</p>
+<p>上边的方法的内部都是<code>ConfigService</code>的使用，最终都是调用了<code>ConfigService.getConfig</code>拉取配置，然后通过<code>ConfigService.addListener</code>来监听配置的变化。其内部还是和注册中心一样，都是通过HTTP进行交互的</p>
+<h3 id="获取配置"><a href="#获取配置" class="headerlink" title="获取配置"></a>获取配置</h3><p>获取配置的主要方法是 NacosConfigService 类的 getConfig 方法，通常情况下该方法直接从本地文件中取得配置的值，如果本地文件不存在或者内容为空，则再通过 HTTP GET 方法从远端拉取配置，并保存到本地快照中。当通过 HTTP 获取远端配置时，Nacos 提供了两种熔断策略，一是超时时间，二是最大重试次数，默认重试三次。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629982.png" alt="img"></p>
+<blockquote>
+<p>获取配置的http：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:  /nacos/v1/cs/configs</span><br><span class="line">Method: GET</span><br></pre></td></tr></table></figure>
+
+
+</blockquote>
+<h3 id="注册监听器"><a href="#注册监听器" class="headerlink" title="注册监听器"></a>注册监听器</h3><p>配置中心客户端会通过对配置项注册监听器达到在配置项变更的时候执行回调的功能。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NacosConfigService#getConfigAndSignListener</span><br><span class="line">ConfigService#addListener</span><br></pre></td></tr></table></figure>
+
+<p>Nacos 可以通过以上方式注册监听器，它们内部的实现均是调用 ClientWorker 类的 addCacheDataIfAbsent。其中 CacheData 是一个维护配置项和其下注册的所有监听器的实例，所有的 CacheData 都保存在 ClientWorker 类中的原子 cacheMap 中，其内部的核心成员有：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629983.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629984.png" alt="img"></p>
+<p>在nacos-config-config中，是通过ApplicationListener来完成NACOS监听器的注册的。在Spring boot的上下文启动完成后，会发布一个<code>ApplicationReadyEvent</code>事件，Nacos通过<code>NacosContextRefresher</code>来处理该事件，来完成监听器的注册，NacosContextRefresher的核心源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Listener</span> <span class="variable">listener</span> <span class="operator">=</span> listenerMap.computeIfAbsent(key,</span><br><span class="line">		lst -&gt; <span class="keyword">new</span> <span class="title class_">AbstractSharedListener</span>() &#123;</span><br><span class="line">      <span class="comment">// 配置变化后会执行该方法</span></span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">innerReceive</span><span class="params">(String dataId, String group,</span></span><br><span class="line"><span class="params">					String configInfo)</span> &#123;</span><br><span class="line">				refreshCountIncrement();</span><br><span class="line">				nacosRefreshHistory.addRefreshRecord(dataId, group, configInfo);</span><br><span class="line">				<span class="comment">// todo feature: support single refresh for listening</span></span><br><span class="line">        <span class="comment">// 发布RefreshEvent事件，刷新配置</span></span><br><span class="line">				applicationContext.publishEvent(</span><br><span class="line">						<span class="keyword">new</span> <span class="title class_">RefreshEvent</span>(<span class="built_in">this</span>, <span class="literal">null</span>, <span class="string">&quot;Refresh Nacos config&quot;</span>));</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line"></span><br><span class="line">configService.addListener(dataKey, groupKey, listener);</span><br></pre></td></tr></table></figure>
+
+<p>监听 Nacos 上的配置，以便实时感知配置变更。如果配置变更，则用<a target="_blank" rel="noopener" href="https://nacos.io/zh-cn/docs/~~64131~~">获取配置</a>接口获取配置的最新值，动态刷新本地缓存。</p>
+<p>注册监听采用的是异步 Servlet 技术。注册监听本质就是带着配置和配置值的 MD5 值和后台对比。如果 MD5 值不一致，就立即返回不一致的配置。如果值一致，就等待住 30 秒。返回值为空。</p>
+<p>Nacos-config-client的监听，其实是一个长轮询</p>
+<p>ClientWorker 通过其下的两个线程池完成配置长轮询的工作，一个是单线程的 executor，每隔 10ms 按照每 3000 个配置项为一批次捞取待轮询的 cacheData 实例，将其包装成为一个 LongPollingRunnable 提交进入第二个线程池 executorService 处理。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629985.png" alt="img"></p>
+<p>LongPollingRunnable最核心的就是执行了这个方法</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629986.png" alt="image-20220301002245125"></p>
+<p>检查服务端的配置是否变化了，其内部就是发起了一个异步HTTP请求</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:  /nacos/v1/cs/configs/listener</span><br><span class="line">Method: POST</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里其实是一个异步http</p>
+<p>异步http，有分</p>
+<ul>
+<li>客户端异步（nio）</li>
+<li>服务端异步（异步servlet）</li>
+</ul>
+<p>这里是客户端异步（看情况，可能会是同步）</p>
+</blockquote>
+<p>所以监听，其实就是一个长轮询，不断的检查配置是否发生变化。</p>
+<p>如果发生变化了就会根据返回值调用获取配置的http请求。</p>
+<h2 id="项目中动态感知参数变化——-RefreshScope"><a href="#项目中动态感知参数变化——-RefreshScope" class="headerlink" title="项目中动态感知参数变化——@RefreshScope"></a>项目中动态感知参数变化——@RefreshScope</h2><blockquote>
+<p>刷新就是刷新本地的<code>ConfigurableEnvironment</code>对象，然后销毁refresh范围的真时bean对象，当通过refresh范围的某个代理对象调用某个方法时，会触发<code>beanFactory.getBean</code>方法重新生成一个对象。</p>
+<p>刷新<code>ConfigurableEnvironment</code>对象是spring cloud的知识</p>
+<p>后面的都是spring的知识</p>
+</blockquote>
+<p>当nacos client通过监听，感知到配置变化后，项目中有<code>@RefreshScope</code>注解的对象的属性也要进行修改，这是怎么实现的？</p>
+<p>nacos的配置变化是通过nacos监听器来监听的，而注册的nacos监听器是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NacosContextRefresher</span></span><br><span class="line"><span class="comment">// ApplicationReadyEvent</span></span><br><span class="line"><span class="type">Listener</span> <span class="variable">listener</span> <span class="operator">=</span> listenerMap.computeIfAbsent(key,</span><br><span class="line">		lst -&gt; <span class="keyword">new</span> <span class="title class_">AbstractSharedListener</span>() &#123;</span><br><span class="line">      <span class="comment">// 配置变化后会执行该方法</span></span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">innerReceive</span><span class="params">(String dataId, String group,</span></span><br><span class="line"><span class="params">					String configInfo)</span> &#123;</span><br><span class="line">				refreshCountIncrement();</span><br><span class="line">				nacosRefreshHistory.addRefreshRecord(dataId, group, configInfo);</span><br><span class="line">				<span class="comment">// todo feature: support single refresh for listening</span></span><br><span class="line">        <span class="comment">// 发布RefreshEvent事件，刷新配置</span></span><br><span class="line">				applicationContext.publishEvent(</span><br><span class="line">						<span class="keyword">new</span> <span class="title class_">RefreshEvent</span>(<span class="built_in">this</span>, <span class="literal">null</span>, <span class="string">&quot;Refresh Nacos config&quot;</span>));</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在配置变化后就会执行<code>innerReceive</code>，在这个方法内会发布一个<code>RefreshEvent</code>事件，该事件就是刷新配置事件，也就是说@RefreshScope注解的功能是通过ApplicationListener来实现的，这个ApplicationListener就是<code>RefreshEventListener</code>，它的执行流程如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629987.png" alt="image-20220228023849449"></p>
+<p><code>RefreshEventListener</code>它会通过SpringApplication.run重新创建<code>ConfigurableEnvironment</code>(流程就是“Spring Cloud配置原理”中的流程图中的BootstrapApplicationListener)，这时新建的<code>ConfigurableEnvironment</code>就有配置的最新的信息了，然后用这个新的<code>ConfigurableEnvironment</code>更新旧的。应用的上下文的<code>ConfigurableEnvironment</code>的数据就是最新的了。</p>
+<p>然后销毁有<code>@RefreshScope</code>注解的Bean（注入的是代理对象，销毁的是真实对象。从上下文中移除了真实对象）。之后如果有<code>@RefreshScope</code>的bean的方法调用，那就会触发<code>beanFactory.getBean</code>方法，从而新生成一个的bean，新bean就有新的数据了。</p>
+<blockquote>
+<p>@RefreshScope实际上是@Scope(“refresh”)，把bean的作用域设置为refresh，而这个作用域的定义类为<code>RefreshScope</code>。</p>
+<p>RefreshScope这个类BeanDefinition的注册阶段，会把refresh范围的类的RootBeanDefinition的class属性重新指向为<code>LockedScopedProxyFactoryBean</code>。而且在bean创建时会缓存refresh范围的bean。</p>
+<p>refresh范围的bean在初始化时由于时<code>LockedScopedProxyFactoryBean</code>，会生成一个代理类，而该代理类的里面的<code>TargetSource</code>为<code>DefaultScopedObject</code>，会通过<code>beanFactory.getBean(beanName)</code>来获取目标类。</p>
+<p>在配置信息发生变化后，刷新完本地的<code>Environment</code>对象后，会执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RefreshScope.refreshAll() &#123;</span><br><span class="line">  <span class="built_in">super</span>.destroy();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>来销毁RefreshScope缓存的bean。</p>
+<p>这是如有其他类通过代理对象调用了对应的方法，由于目标类已经被销毁了，所以<code>beanFactory.getBean(beanName)</code>会重新实例化refresh范围的bean</p>
+</blockquote>
+<h2 id="Nacos-配置中心服务端原理"><a href="#Nacos-配置中心服务端原理" class="headerlink" title="Nacos 配置中心服务端原理"></a>Nacos 配置中心服务端原理</h2><blockquote>
+<p>下面是以nacos集群+mysql存储</p>
+<p>单机+嵌入式存储（Apache Derby）的就是去注解去数据库的</p>
+</blockquote>
+<h3 id="启动时拉取数据"><a href="#启动时拉取数据" class="headerlink" title="启动时拉取数据"></a>启动时拉取数据</h3><p>前面发现，nacos是直接读取本地文件数据的，那这些文件是怎么来的。</p>
+<p>在服务启动时会启动一个服务<code>DumpService</code>，它是一个抽象类，有两个实现</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629988.png" alt="img"></p>
+<p><code>ExternalDumpService</code>就是我们的目标，另一个是使用内嵌存储才使用的。跟踪代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// DumpService</span><br><span class="line">dumpConfigInfo(dumpAllProcessor);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629989.png" alt="image-20220301001125380"></p>
+<p>服务端启动时就会依赖 DumpService 的 init 方法，从数据库中 load 配置存储在本地磁盘上，并将一些重要的元信息例如 MD5 值缓存在内存中。服务端会根据心跳文件中保存的最后一次心跳时间，来判断到底是从数据库 dump 全量配置数据还是部分增量配置数据（如果机器上次心跳间隔是 6h 以内的话）。</p>
+<p>全量 dump 当然先清空磁盘缓存，然后根据主键 ID 每次捞取一千条配置刷进磁盘和内存。增量 dump 就是捞取最近六小时的新增配置（包括更新的和删除的），先按照这批数据刷新一遍内存和文件，再根据内存里所有的数据全量去比对一遍数据库，如果有改变的再同步一次，相比于全量 dump 的话会减少一定的数据库 IO 和磁盘 IO 次数。</p>
+<p>如果是增量的情况，最后会执行一个<code>checkMd5Task</code>任务，在该任务内部会发布这一个<code>LocalDataChangeEvent</code>事件，用来告诉客户端，配置发生变化了。</p>
+<h3 id="拉取数据服务"><a href="#拉取数据服务" class="headerlink" title="拉取数据服务"></a>拉取数据服务</h3><p>前面已经知道，拉取配置信息是通过 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:  /nacos/v1/cs/configs</span><br><span class="line">Method: GET</span><br></pre></td></tr></table></figure>
+
+<p>获取的。这服务是<code>ConfigController</code>提供的。跟踪+debug就会发现，服务端获取配置不是直接查数据裤的，而是直接查询本地文件的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ConfigServletInner</span></span><br><span class="line"><span class="keyword">if</span> (PropertyUtil.isDirectRead()) &#123;</span><br><span class="line">  	<span class="comment">// 单机+嵌入式存储 直接查数据</span></span><br><span class="line">    configInfoBase = </span><br><span class="line">      persistService.findConfigInfo(dataId, group, tenant);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    file = DiskUtil.targetFile(dataId, group, tenant);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629990.png" alt="image-20220228232219952"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629991.png" alt="image-20220228232320566"></p>
+<h3 id="发布配置"><a href="#发布配置" class="headerlink" title="发布配置"></a>发布配置</h3><p>通过下面api发布配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:  /nacos/v1/cs/configs</span><br><span class="line">Method: POST</span><br></pre></td></tr></table></figure>
+
+<p>发布配置的代码位于 ConfigController#publishConfig中。集群部署，请求一开始也只会打到一台机器，这台机器将配置插入Mysql中进行持久化。服务端并不是针对每次配置查询都去访问 MySQL ，而是会依赖 dump 功能在本地文件中将配置缓存起来。因此当单台机器保存完毕配置之后，需要通知其他机器刷新内存和本地磁盘中的文件内容，因此它会发布一个名为 <code>ConfigDataChangeEvent</code> 的事件，这个事件会通过 HTTP 调用通知所有集群节点（包括自身），触发本地文件和内存的刷新。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629992.png" alt="img"></p>
+<blockquote>
+<p>这里的发布事件和事件处理就涉及到nacos的 <code>EventPublisher</code>、<code>Subscriber</code>。详情看这里<a href="./nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85">nacos事件</a></p>
+</blockquote>
+<p>处理<code>ConfigDataChangeEvent</code>事件的<code>Subscriber</code>是在<code>AsyncNotifyService</code>类创建时订阅的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">AsyncNotifyService</span><span class="params">(ServerMemberManager memberManager)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.memberManager = memberManager;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register ConfigDataChangeEvent to NotifyCenter.</span></span><br><span class="line">    NotifyCenter.registerToPublisher(ConfigDataChangeEvent.class, NotifyCenter.ringBufferSize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register A Subscriber to subscribe ConfigDataChangeEvent.</span></span><br><span class="line">    NotifyCenter.registerSubscriber(<span class="keyword">new</span> <span class="title class_">Subscriber</span>() &#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onEvent</span><span class="params">(Event event)</span> &#123;</span><br><span class="line">            <span class="comment">// Generate ConfigDataChangeEvent concurrently</span></span><br><span class="line">            <span class="keyword">if</span> (event <span class="keyword">instanceof</span> ConfigDataChangeEvent) &#123;</span><br><span class="line">                <span class="comment">// 处理ConfigDataChangeEvent事件，用来通知集群中所有节点需要更新本地缓存</span></span><br><span class="line">                <span class="type">ConfigDataChangeEvent</span> <span class="variable">evt</span> <span class="operator">=</span> (ConfigDataChangeEvent) event;</span><br><span class="line">                <span class="type">long</span> <span class="variable">dumpTs</span> <span class="operator">=</span> evt.lastModifiedTs;</span><br><span class="line">                <span class="type">String</span> <span class="variable">dataId</span> <span class="operator">=</span> evt.dataId;</span><br><span class="line">                <span class="type">String</span> <span class="variable">group</span> <span class="operator">=</span> evt.group;</span><br><span class="line">                <span class="type">String</span> <span class="variable">tenant</span> <span class="operator">=</span> evt.tenant;</span><br><span class="line">                <span class="type">String</span> <span class="variable">tag</span> <span class="operator">=</span> evt.tag;</span><br><span class="line">                <span class="comment">// ServerMemberManager在注册中心就讲过，他是用来管理集群中节点信息的</span></span><br><span class="line">                <span class="comment">// 这里会返回整个集群中的节点信息，包括自己</span></span><br><span class="line">                Collection&lt;Member&gt; ipList = memberManager.allMembers();</span><br><span class="line"></span><br><span class="line">                <span class="comment">// In fact, any type of queue here can be</span></span><br><span class="line">                Queue&lt;NotifySingleTask&gt; queue = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;NotifySingleTask&gt;();</span><br><span class="line">                <span class="keyword">for</span> (Member member : ipList) &#123;</span><br><span class="line">                    queue.add(<span class="keyword">new</span> <span class="title class_">NotifySingleTask</span>(dataId, group, tenant, tag, dumpTs, member.getAddress(),</span><br><span class="line">                            evt.isBeta));</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 这里会发起一个异步http请求</span></span><br><span class="line">                <span class="comment">// 该请求为:</span></span><br><span class="line">                <span class="comment">// url:  /nacos/v1/cs/communication/dataChange</span></span><br><span class="line">                <span class="comment">// method: GET</span></span><br><span class="line">                ConfigExecutor.executeAsyncNotify(<span class="keyword">new</span> <span class="title class_">AsyncTask</span>(nacosAsyncRestTemplate, queue));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Class&lt;? <span class="keyword">extends</span> <span class="title class_">Event</span>&gt; subscribeType() &#123;</span><br><span class="line">            <span class="keyword">return</span> ConfigDataChangeEvent.class;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个流程就是向集群所有节点（包括自己）发起以异步的http请求，地址为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">url:  /nacos/v1/cs/communication/dataChange</span><br><span class="line">method: GET</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>异步http，有分</p>
+<ul>
+<li>客户端异步（nio）</li>
+<li>服务端异步（异步servlet）</li>
+</ul>
+<p>这里是客户端异步</p>
+</blockquote>
+<h3 id="发布配置后"><a href="#发布配置后" class="headerlink" title="发布配置后"></a>发布配置后</h3><p>上边已经讲了，发布配置后，数据库的配置已经是最新的了，而且会通过发布<code>ConfigDataChangeEvent</code>事件，使得整个集群中的节点，都会收到</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">url:  /nacos/v1/cs/communication/dataChange</span><br><span class="line">method: GET</span><br></pre></td></tr></table></figure>
+
+<p>这个请求，来处理变变更。下面看这个请求的处理</p>
+<p>在<code>CommunicationController#notifyConfigInfo</code>，该方法非常的检查，就只是调用了<code>DumpService#dump</code>方法，而该方法也非常的简单</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DumpService</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">dump</span><span class="params">(String dataId, String group, String tenant, <span class="type">long</span> lastModified, String handleIp, <span class="type">boolean</span> isBeta)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">groupKey</span> <span class="operator">=</span> GroupKey2.getKey(dataId, group, tenant);</span><br><span class="line">    dumpTaskMgr.addTask(groupKey, <span class="keyword">new</span> <span class="title class_">DumpTask</span>(groupKey, lastModified, handleIp, isBeta));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果要了解dumpTaskMgr，就需要了解<a href="./05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine">Nacos的AbstractNacosTaskExecuteEngine</a></p>
+</blockquote>
+<p>下面是dumpTaskMgr的初始化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DumpService</span></span><br><span class="line">his.processor = <span class="keyword">new</span> <span class="title class_">DumpProcessor</span>(<span class="built_in">this</span>);</span><br><span class="line"><span class="built_in">this</span>.dumpTaskMgr = <span class="keyword">new</span> <span class="title class_">TaskManager</span>(<span class="string">&quot;com.alibaba.nacos.server.DumpTaskManager&quot;</span>);</span><br><span class="line"><span class="built_in">this</span>.dumpTaskMgr.setDefaultTaskProcessor(processor);</span><br></pre></td></tr></table></figure>
+
+<p>所以这个<code>DumpTask</code>任务就交给了<code>DumpProcessor</code>来处理。该类主要有两个流程</p>
+<ol>
+<li>调用<code>DiskUtil.save...Disk</code>来更新本地文件（缓存）</li>
+<li>发起发起了一个<code>LocalDataChangeEvent</code>事件，来对客户端进行通知（采用servlet3.0的异步http）</li>
+</ol>
+<blockquote>
+<p>这里的发布事件和事件处理就涉及到nacos的 <code>EventPublisher</code>、<code>Subscriber</code>。详情看这里<a href="./nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85">nacos事件</a></p>
+</blockquote>
+<p>处理<code>LocalDataChangeEvent</code>事件的<code>Subscriber</code>是在<code>LongPollingService</code>服务启动时注册的。</p>
+<blockquote>
+<p>LongPollingService是用来管理通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:  /nacos/v1/cs/configs/listener</span><br><span class="line">Method: POST</span><br></pre></td></tr></table></figure>
+
+<p>注册进来的客户端的，也就是调用过监听接口的客户端，该接口是异步http，使用了servlet3.0的异步</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LongPollingService</span></span><br><span class="line"><span class="comment">// Register A Subscriber to subscribe LocalDataChangeEvent.</span></span><br><span class="line">NotifyCenter.registerSubscriber(<span class="keyword">new</span> <span class="title class_">Subscriber</span>() &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onEvent</span><span class="params">(Event event)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (isFixedPolling()) &#123;</span><br><span class="line">            <span class="comment">// Ignore.</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (event <span class="keyword">instanceof</span> LocalDataChangeEvent) &#123;</span><br><span class="line">                <span class="type">LocalDataChangeEvent</span> <span class="variable">evt</span> <span class="operator">=</span> (LocalDataChangeEvent) event;</span><br><span class="line">                ConfigExecutor.executeLongPolling(<span class="keyword">new</span> <span class="title class_">DataChangeTask</span>(evt.groupKey, evt.isBeta, evt.betaIps));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Class&lt;? <span class="keyword">extends</span> <span class="title class_">Event</span>&gt; subscribeType() &#123;</span><br><span class="line">        <span class="keyword">return</span> LocalDataChangeEvent.class;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>看<code>DataChangeTask</code>的run方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ConfigCacheService.getContentBetaMd5(groupKey);</span><br><span class="line">      	<span class="comment">// 这里是那些调用了POST /nacos/v1/cs/configs/listener接口的请求</span></span><br><span class="line">        <span class="comment">// 该接口使用的是servlet3.0的异步请求（服务端异步）,其中ClientLongPolling保存客户端的AsyncContext</span></span><br><span class="line">        <span class="comment">// AsyncContext是servlet3.0的规范，用来异步的返回数据和请求响应</span></span><br><span class="line">        <span class="keyword">for</span> (Iterator&lt;ClientLongPolling&gt; iter = allSubs.iterator(); iter.hasNext(); ) &#123;</span><br><span class="line">            <span class="type">ClientLongPolling</span> <span class="variable">clientSub</span> <span class="operator">=</span> iter.next();</span><br><span class="line">            <span class="keyword">if</span> (clientSub.clientMd5Map.containsKey(groupKey)) &#123;</span><br><span class="line">                <span class="comment">// If published tag is not in the beta list, then it skipped.</span></span><br><span class="line">                <span class="keyword">if</span> (isBeta &amp;&amp; !CollectionUtils.contains(betaIps, clientSub.ip)) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// If published tag is not in the tag list, then it skipped.</span></span><br><span class="line">                <span class="keyword">if</span> (StringUtils.isNotBlank(tag) &amp;&amp; !tag.equals(clientSub.tag)) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                getRetainIps().put(clientSub.ip, System.currentTimeMillis());</span><br><span class="line">                iter.remove(); <span class="comment">// Delete subscribers&#x27; relationships.</span></span><br><span class="line">              </span><br><span class="line">              	<span class="comment">// 这里会对客户端做响应</span></span><br><span class="line">                clientSub.sendResponse(Arrays.asList(groupKey));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        LogUtil.DEFAULT_LOG.error(<span class="string">&quot;data change error: &#123;&#125;&quot;</span>, ExceptionUtil.getStackTrace(t));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p> 要看懂这里的方法，所以先知道servlet3.0的异步http和异步http的使用</p>
+</blockquote>
+<h3 id="nacos客户端监听和nacos发布的原理"><a href="#nacos客户端监听和nacos发布的原理" class="headerlink" title="nacos客户端监听和nacos发布的原理"></a>nacos客户端监听和nacos发布的原理</h3><p>其实就是使用了servlet3.0的异步http。</p>
+<p>客户端会有一个长轮询任务，拉取服务端的配置变更，服务端处理逻辑在LongPollingService类中，其中有一个 Runnable 任务名为ClientLongPolling，服务端会将受到的轮询请求包装成一个 ClientLongPolling 任务，该任务持有一个 AsyncContext 响应对象，通过定时线程池延后 29.5s 执行。比客户端 30s 的超时时间提前 500ms 返回是为了最大程度上保证客户端不会因为网络延时造成超时。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629993.png" alt="img"></p>
+<ol>
+<li>客户端调用了<code>POST /nacos/v1/cs/configs/listener</code>请求后，在客户端会采用异步http，获取AsyncContext，并生成ClientLongPolling对象，保存进LongPollingService中</li>
+<li>服务发布了<code>LocalDataChangeEvent</code>事件后，触发了<code>LongPollingService</code>的<code>DataChangeTask</code>任务，在该任务中就能对第一步的请求做响应</li>
+<li>客户接收到响应后就重新获取配置</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><a target="_blank" rel="noopener" href="https://www.processon.com/view/link/603f3d2fe401fd641adb51f1">Nacos配置中心源码分析</a></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/4170576736926629994.jpg" alt="Nacos配置中心源码分析"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/springcloud/14-Nacos%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%BA%90%E7%A0%81/">http://sv.pointcut.cc/blog/springcloud/14-Nacos配置中心源码/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/springcloud/">springcloud</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/springcloud/15-Sentinel%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/">15-Sentinel快速入门</a><a class="next" href="/blog/springcloud/13-Spring%20Cloud%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/">13-Spring Cloud配置原理</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">配置中心架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nacos%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">Nacos配置中心客户端使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nacos-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">Nacos 配置中心客户端原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E9%85%8D%E7%BD%AE"><span class="toc-number">3.1.</span> <span class="toc-text">获取配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E7%9B%91%E5%90%AC%E5%99%A8"><span class="toc-number">3.2.</span> <span class="toc-text">注册监听器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%8A%A8%E6%80%81%E6%84%9F%E7%9F%A5%E5%8F%82%E6%95%B0%E5%8F%98%E5%8C%96%E2%80%94%E2%80%94-RefreshScope"><span class="toc-number">4.</span> <span class="toc-text">项目中动态感知参数变化——@RefreshScope</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Nacos-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8E%9F%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">Nacos 配置中心服务端原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E6%97%B6%E6%8B%89%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="toc-number">5.1.</span> <span class="toc-text">启动时拉取数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%89%E5%8F%96%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1"><span class="toc-number">5.2.</span> <span class="toc-text">拉取数据服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%91%E5%B8%83%E9%85%8D%E7%BD%AE"><span class="toc-number">5.3.</span> <span class="toc-text">发布配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%91%E5%B8%83%E9%85%8D%E7%BD%AE%E5%90%8E"><span class="toc-number">5.4.</span> <span class="toc-text">发布配置后</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#nacos%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9B%91%E5%90%AC%E5%92%8Cnacos%E5%8F%91%E5%B8%83%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">5.5.</span> <span class="toc-text">nacos客户端监听和nacos发布的原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/md/1647876420-3057dd.jpeg')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>01-03-ByteBuf | XYZhi's学习笔记</title><meta name="keywords" content="netty"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Netty 的数据处理 API 通过两个组件暴露——abstract class ByteBuf 和 interface ByteBufHolder。 ByteBuf API 的优点:  它可以被用户自定义的缓冲区类型扩展; 通过内置的复合缓冲区类型实现了透明的零拷贝; 容量可以按需增长(类似于 JDK 的 StringBuilder) ; 在读和写这两种模式之间切换不需要调用 ByteBuffe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01-03-ByteBuf">
+<meta property="og:url" content="http://sv.pointcut.cc/blog/netty/01-03-ByteBuf/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="Netty 的数据处理 API 通过两个组件暴露——abstract class ByteBuf 和 interface ByteBufHolder。 ByteBuf API 的优点:  它可以被用户自定义的缓冲区类型扩展; 通过内置的复合缓冲区类型实现了透明的零拷贝; 容量可以按需增长(类似于 JDK 的 StringBuilder) ; 在读和写这两种模式之间切换不需要调用 ByteBuffe">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)">
+<meta property="article:published_time" content="2021-11-23T12:00:04.000Z">
+<meta property="article:modified_time" content="2022-03-23T09:03:58.132Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="netty">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://sv.pointcut.cc/linear-gradient(20deg,%20#0062be,%20#925696,%20#cc426e,%20#fb0347)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://sv.pointcut.cc/blog/netty/01-03-ByteBuf/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '01-03-ByteBuf',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 17:03:58'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-list"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">01-03-ByteBuf</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-23T12:00:04.000Z" title="发表于 2021-11-23 20:00:04">2021-11-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-23T09:03:58.132Z" title="更新于 2022-03-23 17:03:58">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="01-03-ByteBuf"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>Netty 的数据处理 API 通过两个组件暴露——abstract class ByteBuf 和 interface ByteBufHolder。</p>
+<p>ByteBuf API 的优点:</p>
+<ul>
+<li>它可以被用户自定义的缓冲区类型扩展;</li>
+<li>通过内置的复合缓冲区类型实现了透明的零拷贝;</li>
+<li>容量可以按需增长(类似于 JDK 的 StringBuilder) ;</li>
+<li>在读和写这两种模式之间切换不需要调用 ByteBuffer 的 flip()方法;</li>
+<li>读和写使用了不同的索引;</li>
+<li>支持方法的链式调用;</li>
+<li>支持引用计数;</li>
+<li>支持池化。</li>
+</ul>
+<p>ByteBuf维护了两个不同的索引:一个用于读取，一个用于写入。当你从ByteBuf读取时，它的readerIndex将会被递增已经被读取的字节数。同样地，当你写入ByteBuf时，它的writerIndex也会被递增。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427402.jpg"></p>
+<p>名称以 read 或者 write 开头的 ByteBuf 方法，将会 推进其对应的索引，而名称以 set 或者 get 开头的操作则不会。</p>
+<h2 id="分配"><a href="#分配" class="headerlink" title="分配"></a>分配</h2><h3 id="ByteBufAllocator-接口"><a href="#ByteBufAllocator-接口" class="headerlink" title="ByteBufAllocator 接口"></a>ByteBufAllocator 接口</h3><p>Netty 通过 interface ByteBufAllocator 分配我们所描述过的任意类型的 ByteBuf 实例。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>buffer()</td>
+<td>返回一个基于堆或者直接内存存储的 ByteBuf</td>
+</tr>
+<tr>
+<td>heapBuffer()</td>
+<td>返回一个基于堆内存存储的 ByteBuf</td>
+</tr>
+<tr>
+<td>directBuffer()</td>
+<td>返回一个基于直接内存存储的 ByteBuf</td>
+</tr>
+<tr>
+<td>compositeBuffer()</td>
+<td>返回一个可以通过添加最大到指定数目的基于堆的或者直接内存存储的缓冲区来扩展的 CompositeByteBuf</td>
+</tr>
+<tr>
+<td>ioBuffer()</td>
+<td>返回一个用于套接字的 I&#x2F;O 操作的 ByteBuf，当所运行的环境具有 sun.misc.Unsafe 支持时，返回基于直接内存存储的 ByteBuf， 否则返回基于堆内存存储的 ByteBuf;<br /><br />当指定使用 PreferHeapByteBufAllocator 时，则只会返回基于堆内存存储的 ByteBuf。</td>
+</tr>
+</tbody></table>
+<p>可以通过 Channel(每个都可以有一个不同的 ByteBufAllocator 实例)或者绑定到ChannelHandler 的 ChannelHandlerContext 获取一个到 ByteBufAllocator 的引用。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427403.png" alt="image-20211018012721764"></p>
+<p>Netty提供了两种ByteBufAllocator的实现:<code>PooledByteBufAllocator</code>和<code>UnpooledByteBufAllocator</code>。 前者池化了ByteBuf的实例以提高性能并最大限度地减少内存碎片。 此实现使用了一种称为jemalloc的已被大量现代操作系统所采用的高效方法来分配内存。后者的实现不池化ByteBuf实例,并且在每次它被调用时都会返回一个新的实例。</p>
+<h3 id="Unpooled-缓冲区"><a href="#Unpooled-缓冲区" class="headerlink" title="Unpooled 缓冲区"></a>Unpooled 缓冲区</h3><p>可能某些情况下,你未能获取一个到ByteBufAllocator 的引用。对于这种情况,Netty 提供了一个简单的称为 Unpooled 的工具类,它提供了静态的辅助方法来创建未池化的 ByteBuf 实例。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>directBuffer() <br />directBuffer(int initialCapacity) <br />directBuffer(int initialCapacity, int maxCapacity)</td>
+<td>返回一个未池化的基于直接内存存储的ByteBuf</td>
+</tr>
+<tr>
+<td>buffer()<br />buffer(int initialCapacity)<br />buffer(int initialCapacity, int maxCapacity)</td>
+<td>返回一个未池化的基于堆内存存储的ByteBuf</td>
+</tr>
+<tr>
+<td>wrappedBuffer()</td>
+<td>返回一个包装了给定数据的ByteBuf</td>
+</tr>
+<tr>
+<td>copiedBuffer()</td>
+<td>返回一个复制了给定数据的ByteBuf</td>
+</tr>
+</tbody></table>
+<p>Unpooled 类还使得 ByteBuf 同样可用于那些并不需要 Netty 的其他组件的非网络项目</p>
+<h2 id="字节级操作"><a href="#字节级操作" class="headerlink" title="字节级操作"></a>字节级操作</h2><p>get()和 set()操作，从给定的索引开始，并且保持索引不变；read()和 write()操作，从给定的索引开始，并且会根据已经访问过的字节数对索引</p>
+<p>进行调整。</p>
+<p>更多的操作：</p>
+<ol>
+<li>isReadable() 如果至少有一个字节可供读取，则返回 true</li>
+<li>isWritable() 如果至少有一个字节可被写入，则返回 true</li>
+<li>readableBytes() 返回可被读取的字节数</li>
+<li>writableBytes() 返回可被写入的字节数</li>
+<li>capacity() 返回 ByteBuf 可容纳的字节数。在此之后，它会尝试再次扩展直到达到 maxCapacity()</li>
+<li>maxCapacity() 返回 ByteBuf 可以容纳的最大字节数</li>
+<li>hasArray() 如果 ByteBuf 由一个字节数组支撑，则返回 true</li>
+<li>array() 如果 ByteBuf 由一个字节数组支撑则返回该数组;否则，它将抛出一个 UnsupportedOperationException 异常</li>
+</ol>
+<h3 id="随机访问索引"><a href="#随机访问索引" class="headerlink" title="随机访问索引"></a>随机访问索引</h3><p>如同在普通的 Java 字节数组中一样,ByteBuf 的索引是从零开始的:第一个字节的索引是0,最后一个字节的索引总是 capacity() - 1‘</p>
+<p>需要注意的是,使用那些需要一个索引值参数的方法(的其中)之一来访问数据既不会改变readerIndex 也不会改变writerIndex。 如果有需要, 也可以通过调用readerIndex(index) 或者 writerIndex(index)来手动移动这两者。</p>
+<h3 id="顺序访问索引"><a href="#顺序访问索引" class="headerlink" title="顺序访问索引"></a>顺序访问索引</h3><p>虽然 ByteBuf 同时具有读索引和写索引,但是 JDK 的 ByteBuffer 却只有一个索引,这也就是为什么必须调用 flip()方法来在读模式和写模式之间进行切换的原因。下图 展示了ByteBuf 是如何被它的两个索引划分成 3 个区域的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427404.png" alt="image-20211018013407042"></p>
+<h3 id="可丢弃字节"><a href="#可丢弃字节" class="headerlink" title="可丢弃字节"></a>可丢弃字节</h3><p>可丢弃字节的分段包含了已经被读过的字节。通过调用 discardReadBytes()方法, 可以丢弃它们并回收空间。 这个分段的初始大小为 0, 存储在 readerIndex 中, 会随着 read 操作的执行而增加(get*操作不会移动 readerIndex) 。</p>
+<h3 id="可读字节"><a href="#可读字节" class="headerlink" title="可读字节"></a>可读字节</h3><p>任何名称以 read 或者 skip 开头的操作都将检索或者跳过位于当前readerIndex 的数据,并且将它增加已读字节数。</p>
+<p>如果被调用的方法需要一个 ByteBuf 参数作为写入的目标,并且没有指定目标索引参数, 那么该目标缓冲区的 writerIndex 也将被增加,例如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">readBytes(ByteBuf dest);</span><br></pre></td></tr></table></figure>
+
+<p>如果尝试在缓冲区的可读字节数已经耗尽时从中读取数据,那么将会引发一个 IndexOutOfBoundsException。</p>
+<h3 id="可写字节"><a href="#可写字节" class="headerlink" title="可写字节"></a>可写字节</h3><p>可写字节分段是指一个拥有未定义内容的、写入就绪的内存区域。新分配的缓冲区的writerIndex 的默认值为 0。任何名称以 write 开头的操作都将从当前的 writerIndex 处开始写数据,并将它增加已经写入的字节数。如果写操作的目标也是 ByteBuf,并且没有指定源索引的值,则源缓冲区的 readerIndex 也同样会被增加相同的大小。这个调用如下所示:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">writeBytes(ByteBuf dest);</span><br></pre></td></tr></table></figure>
+
+<p>如果尝试往目标写入超过目标容量的数据,将会引发一个IndexOutOfBoundException</p>
+<blockquote>
+<p>可以用writeableBytes()来判断是否可写</p>
+</blockquote>
+<h3 id="索引管理"><a href="#索引管理" class="headerlink" title="索引管理"></a>索引管理</h3><p>可以通过调用markReaderIndex()、markWriterIndex()、resetWriterIndex() 和 resetReaderIndex()来标记和重置 ByteBuf 的 readerIndex 和 writerIndex。这些和InputStream 上的调用类似,只是没有readlimit 参数来指定标记什么时候失效。</p>
+<p>也可以通过调用readerIndex(int)或者writerIndex(int)来将索引移动到指定位置。 试图将任何一个索引设置到一个无效的位置都将导致一个IndexOutOfBoundsException。</p>
+<p>可以通过调用 clear()方法来将 readerIndex 和 writerIndex 都设置为 0。注意,这并不会清除内存中的内容</p>
+<p>调用 clear()比调用 discardReadBytes()轻量得多,因为它将只是重置索引而不会复制任何的内存。</p>
+<h2 id="派生缓冲区"><a href="#派生缓冲区" class="headerlink" title="派生缓冲区"></a>派生缓冲区</h2><p>派生缓冲区为 ByteBuf 提供了以专门的方式来呈现其内容的视图。这类视图是通过以下方法被创建的:</p>
+<ol>
+<li>duplicate();</li>
+<li>slice();</li>
+<li>slice(int, int);‘</li>
+<li>Unpooled.unmodifiableBuffer(…);</li>
+<li>order(ByteOrder);</li>
+<li>readSlice(int)。</li>
+</ol>
+<p>每个这些方法都将返回一个新的 ByteBuf 实例,它具有自己的读索引、写索引和标记索引。其内部存储和 JDK 的 ByteBuffer 一样也是共享的。这使得派生缓冲区的创建成本是很低廉的,但是这也意味着,如果你修改了它的内容,也同时修改了其对应的源实例,所以要小心。</p>
+<blockquote>
+<p>ByteBuf 复制  如果需要一个现有缓冲区的真实副本,请使用copy()或者copy(int, int)方法。不同于派生缓冲区,由这个调用所返回的ByteBuf拥有独立的数据副本。</p>
+</blockquote>
+<h2 id="ByteBuf-的使用模式"><a href="#ByteBuf-的使用模式" class="headerlink" title="ByteBuf 的使用模式"></a>ByteBuf 的使用模式</h2><h3 id="堆缓冲区"><a href="#堆缓冲区" class="headerlink" title="堆缓冲区"></a>堆缓冲区</h3><p>最常用的 ByteBuf 模式是将数据存储在 JVM 的堆空间中。这种模式被称为支撑数组(backing array) ,它能在没有使用池化的情况下提供快速的分配和释放。这种方式,非常适合于需要对数据进行处理的情况。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427405.png" alt="image-20211018011119170"></p>
+<h3 id="直接缓冲区"><a href="#直接缓冲区" class="headerlink" title="直接缓冲区"></a>直接缓冲区</h3><p>接缓冲区的内容将驻留在常规的会被垃圾回收的堆之外。 ”这也就解释了为何直接缓冲区对于网络数据传输是理想的选择。如果你的数据包含在一个在堆上分配的缓冲区中,那么事实上,在通过套接字发送它之前,JVM将会在内部把你的缓冲区复制到一个直接缓冲区中。</p>
+<p>直接缓冲区的主要缺点是,相对于基于堆的缓冲区,它们的分配和释放都较为昂贵。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427406.png" alt="image-20211018011744130"></p>
+<h3 id="复合缓冲区"><a href="#复合缓冲区" class="headerlink" title="复合缓冲区"></a>复合缓冲区</h3><p>CompositeByteBuf为多个 ByteBuf 提供一个聚合视图。它提供了一个将多个缓冲区表示为单个合并缓冲区的虚拟表示。</p>
+<blockquote>
+<p>CompositeByteBuf中的ByteBuf实例可能同时包含直接内存分配和非直接内存分配。如果其中只有一个实例,那么对 CompositeByteBuf 上的 hasArray()方法的调用将返回该组件上的hasArray()方法的值;否则它将返回false。</p>
+</blockquote>
+<p>比如HTTP 协议， 分为消息头和消息体，这两部分可能由应用程序的不同模块产生，各有各的 ByteBuf，将会 在消息被发送的时候组装为一个 ByteBuf，此时可以将这两个 ByteBuf 聚合为一个 CompositeByteBuf，然后使用统一和通用的 ByteBuf API 来操作。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427407.png" alt="image-20211018012135110"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427408.png" alt="image-20211018012142340"></p>
+<h2 id="ByteBufHolder-接口"><a href="#ByteBufHolder-接口" class="headerlink" title="ByteBufHolder 接口"></a>ByteBufHolder 接口</h2><p>我们经常发现,除了实际的数据负载之外,我们还需要存储各种属性值。HTTP 响应便是一个很好的例子,除了表示为字节的内容,还包括状态码、cookie等。 </p>
+<p>为了处理这种常见的用例,Netty 提供了 ByteBufHolder。ByteBufHolder 也为 Netty 的高级特性提供了支持,如缓冲区池化,其中可以从池中借用ByteBuf,并且在需要时自动释放。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427409.png" alt="image-20211018015318262"></p>
+<h2 id="ByteBufUtil-类"><a href="#ByteBufUtil-类" class="headerlink" title="ByteBufUtil 类"></a>ByteBufUtil 类</h2><p>ByteBufUtil 提供了用于操作 ByteBuf 的静态的辅助方法。因为这个 API 是通用的,并且和池化无关,所以这些方法已然在分配类的外部实现。</p>
+<p>这些静态方法中最有价值的可能就是 hexdump()方法,它以十六进制的表示形式打印ByteBuf 的内容。这在各种情况下都很有用,例如,出于调试的目的记录 ByteBuf 的内容。十六进制的表示通常会提供一个比字节值的直接表示形式更加有用的日志条目, 此外, 十六进制的版本还可以很容易地转换回实际的字节表示。</p>
+<p>另一个有用的方法是 boolean equals(ByteBuf, ByteBuf),它被用来判断两个 ByteBuf 实例的相等性。</p>
+<h2 id="引用计数"><a href="#引用计数" class="headerlink" title="引用计数"></a>引用计数</h2><p>ByteBuf 和 ByteBufHolder 引入了引用计数技术,它们都实现了 interface ReferenceCounted。</p>
+<p>引用计数背后的想法并不是特别的复杂;它主要涉及跟踪到某个特定对象的活动引用的数量。 一个 ReferenceCounted 实现的实例将通常以活动的引用计数为 1 作为开始。 只要引用计数大于 0, 就能保证对象不会被释放。 当活动引用的数量减少到 0 时,该实例就会被释放</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/spring/9079500731129427410.png" alt="image-20211018015638573"></p>
+<p>试图访问一个已经被释放的引用计数的对象,将会导致一个 IllegalReferenceCountException。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://sv.pointcut.cc/blog/netty/01-03-ByteBuf/">http://sv.pointcut.cc/blog/netty/01-03-ByteBuf/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://sv.pointcut.cc" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/netty/">netty</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/netty/01-04-netty%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">01-04-netty线程模型</a><a class="next" href="/blog/netty/01-02-Channel%E3%80%81ChannelHandler%E3%80%81ChannelPipeline%E5%92%8CChannelHandlerContext/">01-02-Channel、ChannelHandler、ChannelPipeline和ChannelHandlerContext</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">301</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E9%85%8D"><span class="toc-number">1.</span> <span class="toc-text">分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ByteBufAllocator-%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.1.</span> <span class="toc-text">ByteBufAllocator 接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Unpooled-%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">1.2.</span> <span class="toc-text">Unpooled 缓冲区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%BA%A7%E6%93%8D%E4%BD%9C"><span class="toc-number">2.</span> <span class="toc-text">字节级操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE%E7%B4%A2%E5%BC%95"><span class="toc-number">2.1.</span> <span class="toc-text">随机访问索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E8%AE%BF%E9%97%AE%E7%B4%A2%E5%BC%95"><span class="toc-number">2.2.</span> <span class="toc-text">顺序访问索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E4%B8%A2%E5%BC%83%E5%AD%97%E8%8A%82"><span class="toc-number">2.3.</span> <span class="toc-text">可丢弃字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E8%AF%BB%E5%AD%97%E8%8A%82"><span class="toc-number">2.4.</span> <span class="toc-text">可读字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E5%86%99%E5%AD%97%E8%8A%82"><span class="toc-number">2.5.</span> <span class="toc-text">可写字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B4%A2%E5%BC%95%E7%AE%A1%E7%90%86"><span class="toc-number">2.6.</span> <span class="toc-text">索引管理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B4%BE%E7%94%9F%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">3.</span> <span class="toc-text">派生缓冲区</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ByteBuf-%E7%9A%84%E4%BD%BF%E7%94%A8%E6%A8%A1%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">ByteBuf 的使用模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A0%86%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">4.1.</span> <span class="toc-text">堆缓冲区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">4.2.</span> <span class="toc-text">直接缓冲区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E5%90%88%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">4.3.</span> <span class="toc-text">复合缓冲区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ByteBufHolder-%E6%8E%A5%E5%8F%A3"><span class="toc-number">5.</span> <span class="toc-text">ByteBufHolder 接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ByteBufUtil-%E7%B1%BB"><span class="toc-number">6.</span> <span class="toc-text">ByteBufUtil 类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-number">7.</span> <span class="toc-text">引用计数</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg, #0062be, #925696, #cc426e, #fb0347)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
