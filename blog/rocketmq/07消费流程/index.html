@@ -1,0 +1,379 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>07消费流程 | XYZhi's学习笔记</title><meta name="keywords" content="rocketmq"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、消费者概述消费者一般指获取消息、转发消息给业务代码处理的一系列代码实现。在RocketMQ中，消费行为是如何进行的呢？ RocketMQ消费者支持订阅发布模式和Queue模式。下面以集群模式消费为例，描述生产、消费是如何进行的，见下图：  基本概念： 　　消费者组： 一个逻辑概念，在使用消费者时需要指定一个组名。一个消费者组可以订阅多个Topic。 　　消费者实例：一个消费者组程序部署了多个进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="07消费流程">
+<meta property="og:url" content="https://nbobj.github.io/blog/rocketmq/07%E6%B6%88%E8%B4%B9%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="一、消费者概述消费者一般指获取消息、转发消息给业务代码处理的一系列代码实现。在RocketMQ中，消费行为是如何进行的呢？ RocketMQ消费者支持订阅发布模式和Queue模式。下面以集群模式消费为例，描述生产、消费是如何进行的，见下图：  基本概念： 　　消费者组： 一个逻辑概念，在使用消费者时需要指定一个组名。一个消费者组可以订阅多个Topic。 　　消费者实例：一个消费者组程序部署了多个进">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2022-01-14T00:00:07.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:32.526Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="rocketmq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/rocketmq/07%E6%B6%88%E8%B4%B9%E6%B5%81%E7%A8%8B/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '07消费流程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">07消费流程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-14T00:00:07.000Z" title="发表于 2022-01-14 08:00:07">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:32.526Z" title="更新于 2022-04-13 17:50:32">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="07消费流程"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="一、消费者概述"><a href="#一、消费者概述" class="headerlink" title="一、消费者概述"></a>一、消费者概述</h2><p>消费者一般指获取消息、转发消息给业务代码处理的一系列代码实现。在RocketMQ中，消费行为是如何进行的呢？</p>
+<p>RocketMQ消费者支持订阅发布模式和Queue模式。下面以集群模式消费为例，描述生产、消费是如何进行的，见下图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729540.png" alt="img"></p>
+<p><strong>基本概念：</strong></p>
+<p>　　消费者组： 一个逻辑概念，在使用消费者时需要指定一个组名。一个消费者组可以订阅多个Topic。</p>
+<p>　　消费者实例：一个消费者组程序部署了多个进程，每个进程都可以称为一个消费者实例。</p>
+<p>　　订阅关系：一个消费者组订阅一个Topic的某一个Tag，这种记录被称为订阅关系。RocketMQ规定消费订阅关系(消费者组名-Topic-Tag)必须一致。一个消费者组中的实例订阅的Topic和Tag必须完全一致，否则就是订阅关系不一致，订阅关系不一致会导致消费消息絮乱。</p>
+<h2 id="二、消费模式"><a href="#二、消费模式" class="headerlink" title="二、消费模式"></a>二、消费模式</h2><p>　　RocketMQ 目前支持2种消费模式：</p>
+<ul>
+<li><ul>
+<li>集群消费模式</li>
+<li>广播消费模式</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-1-集群消费模式"><a href="#2-1-集群消费模式" class="headerlink" title="2.1 集群消费模式"></a>2.1 集群消费模式</h3><p>在同一个消费者组中的消费实例，是负载均衡（策略可以配置）地消费 Topic 中的消息，假如有一个生产者（producer）发送 120 条消息，其所属的 Topic 有 3 个消费者（Consumer）组，每个消费者组设置为集群消息，分别有 2 个消费者实例，如下图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729541.jpg" alt="img"></p>
+<p>Consumer Group 1 的两个实例 127.0.0.1 和 127.0.0.2 分别负载均衡地消费 60 条消息。由此我们可以得出使用负载均衡策略时，每个消费者实例消费消息数&#x3D;生产消息数&#x2F;消息者实例数，在本例中是 60&#x3D;120&#x2F;2。</p>
+<p>目前大部分场景都适合集群消费模式，RocketMQ的消费模式默认是集群消费。比如异步通信、削峰等对消息没有顺序要求的场景都适合集群消费。因为集群消费模式的消费进度是保存在 Broker 端的，所以即使应用崩溃，消费进度也不会出错。</p>
+<h3 id="2-2-广播消费模式"><a href="#2-2-广播消费模式" class="headerlink" title="2.2 广播消费模式"></a>2.2 广播消费模式</h3><p>广播消费，顾名思义全部的消息都是广播分发，即消费者组中的全部消费者实例将消费整个 Topic 的全部消息。比如，有一个生产者生产了 120 条消息，其所属的 Topic 有3个消费者组，每个消费者组设置为广播消费，分别有两个消费者实例。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729542.jpg" alt="img"></p>
+<p>Consumer Group 1 中的消费者 127.0.0.1 和消费者 127.0.0.2 分别消费 120 条消息。整个消费者组收到消息 120<em>2&#x3D;240 条。由此我们可以得出广播消费时，每个消费者实例的消费消息数&#x3D;生产者生产的消息数，整个消费者组中所有实例消费消息数&#x3D;每个消费者实例消费消息数</em>消费者实例数，本例中是 240&#x3D;&#x3D;120*2。</p>
+<p>广播消费比较适合各个消费者实例都需要通知的场景，比如刷新应用服务器中的缓存，见图：<img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729543.jpg" alt="img"></p>
+<p>生产者发一个刷新缓存的广播消息，消费者组如果设置为广播消息，那么每个应用服务中的消费者都可以消费这个消息，也都能刷新缓存。</p>
+<p>广播消费的消费进度保存在客户端机器的文件中。如果文件丢失了，那么消费进度就丢失了，可能会导致部分消息没有消费。</p>
+<h2 id="三、可靠消费"><a href="#三、可靠消费" class="headerlink" title="三、可靠消费"></a>三、可靠消费</h2><p>RocketMQ是一种十分可靠的消息队列中间件，消费侧通过重试—死信机制、Rebalance机制等多种机制保证消费的可靠性。</p>
+<h3 id="3-1-重试——死信机制"><a href="#3-1-重试——死信机制" class="headerlink" title="3.1 重试——死信机制"></a>3.1 重试——死信机制</h3><p>我们假设有一个场景，在消费消息时由于网络不稳定导致一条消息消费失败。此时是让生产者重新手动发送消息呢，还是自己做数据补偿？RocketMQ告诉你，消费不是一锤子买卖。</p>
+<p>横向看，RocketMQ的消费过程分为3个阶段：正常消费、重试消费和死信。在引进了正常Topic、重试队列、死信队列后，消费过程的可靠性提高了。RocketMQ的消费流程如图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729544.jpg" alt="img"></p>
+<p><strong>基本概念：</strong></p>
+<p>　　正常 Topic ：正常消费者订阅的 Topic 名字。</p>
+<p>　　重试 Topic ：如果由于各种意外导致消息消费失败，那么该消息会自动被保存到重试 Topic 中，格式为 “%RETRY%消费者组”，在订阅的时候会自动订阅这个重试 Topic。</p>
+<p>　　进入重试队列的消息有<strong>16次</strong>重试机会，每次都会按照一定的时间间隔进行，只要正常消费或者重试消费中有一次消费成功，就算消费成功，重试间隔时间见下表：</p>
+<table>
+<thead>
+<tr>
+<th><strong>第几次重试</strong></th>
+<th><strong>与上次重试的间隔时间</strong></th>
+<th><strong>第几次重试</strong></th>
+<th><strong>与上次重试的间隔时间</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>10秒</td>
+<td>9</td>
+<td>7分钟</td>
+</tr>
+<tr>
+<td>2</td>
+<td>30秒</td>
+<td>10</td>
+<td>8分钟</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1分钟</td>
+<td>11</td>
+<td>9分钟</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2分钟</td>
+<td>12</td>
+<td>10分钟</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3分钟</td>
+<td>13</td>
+<td>20分钟</td>
+</tr>
+<tr>
+<td>6</td>
+<td>4分钟</td>
+<td>14</td>
+<td>30分钟</td>
+</tr>
+<tr>
+<td>7</td>
+<td>5分钟</td>
+<td>15</td>
+<td>1小时</td>
+</tr>
+<tr>
+<td>8</td>
+<td>6分钟</td>
+<td>16</td>
+<td>2小时</td>
+</tr>
+</tbody></table>
+<p>死信 Topic ：死信 Topic 名字格式为 “%DLQ%消费者组名”。如果正常消费 1 次失败，重试16次失败，那么消息会被保存到死信 Topic 中，进入死信 Topic 的消息不能被再次消费。RocketMQ认为，如果17次机会都失败了，说明生产者发送消息的格式发生了变化，或者消费服务出现了问题，需要人工介入处理。</p>
+<h3 id="3-2-Rebalance机制"><a href="#3-2-Rebalance机制" class="headerlink" title="3.2 Rebalance机制"></a>3.2 Rebalance机制</h3><p>　　Rebalance（重平衡）机制，用于在发生 Broker 掉线、Topic 扩容和缩容、消费者扩容和缩容等变化时，自动感知并调整自身消费，以尽量减少甚至避免消息没有被消费。后面单独说 Rebalance机制。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/rocketmq/07%E6%B6%88%E8%B4%B9%E6%B5%81%E7%A8%8B/">https://nbobj.github.io/blog/rocketmq/07消费流程/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rocketmq/">rocketmq</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/rocketmq/08%E9%BB%98%E8%AE%A4%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%B6%88%E8%B4%B9%E8%80%85%E6%A0%B8%E5%BF%83%E5%B1%9E%E6%80%A7%E5%92%8C%E6%96%B9%E6%B3%95/">08默认的两种消费者核心属性和方法</a><a class="next" href="/blog/rocketmq/06%E7%94%9F%E4%BA%A7%E8%80%85%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">06生产者负载均衡</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%B6%88%E8%B4%B9%E8%80%85%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">一、消费者概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">二、消费模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%9B%86%E7%BE%A4%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 集群消费模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%B9%BF%E6%92%AD%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 广播消费模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8F%AF%E9%9D%A0%E6%B6%88%E8%B4%B9"><span class="toc-number">3.</span> <span class="toc-text">三、可靠消费</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%87%8D%E8%AF%95%E2%80%94%E2%80%94%E6%AD%BB%E4%BF%A1%E6%9C%BA%E5%88%B6"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 重试——死信机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Rebalance%E6%9C%BA%E5%88%B6"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Rebalance机制</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>02设计理念和目标 | XYZhi's学习笔记</title><meta name="keywords" content="rocketmq"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="设计理念和目标设计理念整体设计思想 80%借鉴 Kafka. 基于主题的发布和订阅，其核心功能，消息发送、消息存储和消息消费。整体设计追求简单与性能。  NameServer 性能对比 Zookeeper 有极大的提升 高效的 IO 存储机制，基于文件顺序读写，内存映射机制（内存页） 容忍设计缺陷，比如消息只消费一次，Rocket 自身不保证，从而简化 Rocket 的内核使得 Rocket 简单">
+<meta property="og:type" content="article">
+<meta property="og:title" content="02设计理念和目标">
+<meta property="og:url" content="https://nbobj.github.io/blog/rocketmq_started/02%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5%E5%92%8C%E7%9B%AE%E6%A0%87/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="设计理念和目标设计理念整体设计思想 80%借鉴 Kafka. 基于主题的发布和订阅，其核心功能，消息发送、消息存储和消息消费。整体设计追求简单与性能。  NameServer 性能对比 Zookeeper 有极大的提升 高效的 IO 存储机制，基于文件顺序读写，内存映射机制（内存页） 容忍设计缺陷，比如消息只消费一次，Rocket 自身不保证，从而简化 Rocket 的内核使得 Rocket 简单">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2022-01-13T23:00:05.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:31.965Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="rocketmq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/rocketmq_started/02%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5%E5%92%8C%E7%9B%AE%E6%A0%87/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '02设计理念和目标',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:31'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">02设计理念和目标</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-13T23:00:05.000Z" title="发表于 2022-01-14 07:00:05">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:31.965Z" title="更新于 2022-04-13 17:50:31">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="02设计理念和目标"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="设计理念和目标"><a href="#设计理念和目标" class="headerlink" title="设计理念和目标"></a>设计理念和目标</h2><h3 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h3><p>整体设计思想 80%借鉴 Kafka.</p>
+<p>基于主题的发布和订阅，其核心功能，消息发送、消息存储和消息消费。整体设计追求简单与性能。</p>
+<ol>
+<li>NameServer 性能对比 Zookeeper 有极大的提升</li>
+<li>高效的 IO 存储机制，基于文件顺序读写，内存映射机制（内存页）</li>
+<li>容忍设计缺陷，比如消息只消费一次，Rocket 自身不保证，从而简化 Rocket 的内核使得 Rocket 简单与高效，这个问题交给消费者去实现(幂等)。</li>
+</ol>
+<h3 id="设计目标"><a href="#设计目标" class="headerlink" title="设计目标"></a>设计目标</h3><h4 id="顺序消息"><a href="#顺序消息" class="headerlink" title="顺序消息"></a>顺序消息</h4><p>  RocketMQ 可以严格保证消息有序（不像kafka，只能保证分区内的消息的顺序，不能保证整个消息的顺序）</p>
+<h4 id="消息过滤"><a href="#消息过滤" class="headerlink" title="消息过滤"></a>消息过滤</h4><p>  消息过滤可以在客户端自己事项，但RocketMQ支持服务端和消费端的消息过滤<br>  消费者可以对同一主题下的消息按照规则只消费自己感兴趣的消息，可以支持在服务端与消费端的消息过滤机制。</p>
+<h4 id="消息存储"><a href="#消息存储" class="headerlink" title="消息存储"></a>消息存储</h4><p>  一般 MQ 核心就是消息的存储（kafka除外），对存储一般来说两个维度：消息堆积能力和消息存储性能。RocketMQ 追求消息存储的高性能，引入内存映射机制，所有的主题消息顺序存储在同一个文件中（一部分数据是按顺序存储的，可以看kafka的文件结构）。同时为了防止无限堆积，引入消息文件过期机制和文件存储空间报警机制。</p>
+<h4 id="消息高可用（真的很像kafka）"><a href="#消息高可用（真的很像kafka）" class="headerlink" title="消息高可用（真的很像kafka）"></a>消息高可用（真的很像kafka）</h4><ol>
+<li>Rocket 关机、断电等情况下，Rokcet 可以确保不丢失消息(同步刷盘机制不丢失，异步刷盘会丢失少量)。</li>
+<li>另外如果 Rocket 服务器因为 CPU、内存、主板、磁盘等关键设备损坏导致无法开机，这个属于单点故障，该节点上的消息全部丢失，如果开启了 异步复制机制，Rocket 可以确保只丢失很少量消息。</li>
+<li>如果引入双写机制，这样基本上可以满足消息可靠性要求极高的场景(毕竟两台主服务器同时故障的可能性还是非常小)</li>
+</ol>
+<h4 id="消息消费低延迟"><a href="#消息消费低延迟" class="headerlink" title="消息消费低延迟"></a>消息消费低延迟</h4><p>  RocketMQ 在消息不发生消息堆积时，以长轮询模式实现准实时的消息推送模式。</p>
+<h4 id="确保消息必须被消费一次"><a href="#确保消息必须被消费一次" class="headerlink" title="确保消息必须被消费一次"></a>确保消息必须被消费一次</h4><p>  消息确认机制(ACK)来确保消息至少被消费一次，一般 ACK 机制只能做到消息只被消费一次，有重复消费的可能。</p>
+<h4 id="消息回溯"><a href="#消息回溯" class="headerlink" title="消息回溯"></a>消息回溯</h4><p>  已经消费完的消息，可以根据业务要求重新消费消息。</p>
+<h4 id="事务消息"><a href="#事务消息" class="headerlink" title="事务消息"></a>事务消息</h4><p>  RocketMQ事务消息（Transactional Message）是指应用本地事务和发送消息操作可以被定义到全局事务中，要么同时成功，要么同时失败。RocketMQ的事务消息提供类似 X&#x2F;Open XA 的分布事务功能，通过事务消息能达到分布式事务的最终一致。</p>
+<h4 id="消息重试"><a href="#消息重试" class="headerlink" title="消息重试"></a>消息重试</h4><p>  Consumer消费消息失败后，要提供一种重试机制，令消息再消费一次。Consumer消费消息失败通常可以认为有以下几种情况：</p>
+<ul>
+<li>由于消息本身的原因，例如反序列化失败，消息数据本身无法处理（例如话费充值，当前消息的手机号被注销，无法充值）等。这种错误通常需要跳过这条消息，再消费其它消息，而这条失败的消息即使立刻重试消费，99%也不成功，所以最好提供一种定时重试机制，即过10秒后再重试。</li>
+<li>由于依赖的下游应用服务不可用，例如db连接不可用，外系统网络不可达等。遇到这种错误，即使跳过当前失败的消息，消费其他消息同样也会报错。这种情况建议应用sleep 30s，再消费下一条消息，这样可以减轻Broker重试消息的压力。</li>
+</ul>
+<p>RocketMQ会为每个消费组都设置一个Topic名称为“%RETRY%+consumerGroup”的重试队列（这里需要注意的是，这个Topic的重试队列是针对消费组，而不是针对每个Topic设置的），用于暂时保存因为各种异常而导致Consumer端无法消费的消息。考虑到异常恢复起来需要一些时间，会为重试队列设置多个重试级别，每个重试级别都有与之对应的重新投递延时，重试次数越多投递延时就越大。RocketMQ对于重试消息的处理是先保存至Topic名称为“SCHEDULE_TOPIC_XXXX”的延迟队列中，后台定时任务按照对应的时间进行Delay后重新保存至“%RETRY%+consumerGroup”的重试队列中。</p>
+<h4 id="消息重"><a href="#消息重" class="headerlink" title="消息重"></a>消息重</h4><p>  投生产者在发送消息时，同步消息失败会重投，异步消息有重试，oneway没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但可能会造成消息重复，消息重复在RocketMQ中是无法避免的问题。消息重复在一般情况下不会发生，当出现消息量大、网络抖动，消息重复就会是大概率事件。另外，生产者主动重发、consumer负载变化也会导致重复消息。如下方法可以设置消息重试策略：</p>
+<ul>
+<li>retryTimesWhenSendFailed:同步发送失败重投次数，默认为2，因此生产者会最多尝试发送retryTimesWhenSendFailed + 1次。不会选择上次失败的broker，尝试向其他broker发送，最大程度保证消息不丢。超过重投次数，抛出异常，由客户端保证消息不丢。当出现RemotingException、MQClientException和部分MQBrokerException时会重投。</li>
+<li>retryTimesWhenSendAsyncFailed:异步发送失败重试次数，异步重试不会选择其他broker，仅在同一个broker上做重试，不保证消息不丢。</li>
+<li>retryAnotherBrokerWhenNotStoreOK:消息刷盘（主或备）超时或slave不可用（返回状态非SEND_OK），是否尝试发送到其他broker，默认false。十分重要消息可以开启。</li>
+</ul>
+<h4 id="流量控制"><a href="#流量控制" class="headerlink" title="流量控制"></a>流量控制</h4><p>  生产者流控，因为broker处理能力达到瓶颈；消费者流控，因为消费能力达到瓶颈。</p>
+<p>  生产者流控：</p>
+<p>broker通过拒绝send 请求方式实现流量控制。</p>
+<ul>
+<li>commitLog文件被锁时间超过osPageCacheBusyTimeOutMills时，参数默认为1000ms，返回流控。</li>
+<li>如果开启transientStorePoolEnable &#x3D;&#x3D; true，且broker为异步刷盘的主机，且transientStorePool中资源不足，拒绝当前send请求，返回流控。</li>
+<li>broker每隔10ms检查send请求队列头部请求的等待时间，如果超过waitTimeMillsInSendQueue，默认200ms，拒绝当前send请求，返回流控。</li>
+</ul>
+<p>  注意，生产者流控，不会尝试消息重投。</p>
+<p>  消费者流控：</p>
+<ul>
+<li>消费者本地缓存消息数超过pullThresholdForQueue时，默认1000。</li>
+<li>消费者本地缓存消息大小超过pullThresholdSizeForQueue时，默认100MB。</li>
+<li>消费者本地缓存消息跨度超过consumeConcurrentlyMaxSpan时，默认2000。</li>
+</ul>
+<p>  消费者流控的结果是降低拉取频率。</p>
+<h4 id="死信队列"><a href="#死信队列" class="headerlink" title="死信队列"></a>死信队列</h4><p>  死信队列用于处理无法被正常消费的消息。当一条消息初次消费失败，消息队列会自动进行消息重试；达到最大重试次数后，若消费依然失败，则表明消费者在正常情况下无法正确地消费该消息，此时，消息队列 不会立刻将消息丢弃，而是将其发送到该消费者对应的特殊队列中。</p>
+<p>  RocketMQ将这种正常情况下无法被消费的消息称为死信消息（Dead-Letter Message），将存储死信消息的特殊队列称为死信队列（Dead-Letter Queue）。在RocketMQ中，可以通过使用console控制台对死信队列中的消息进行重发来使得消费者实例再次进行消费。</p>
+<h4 id="消息堆积"><a href="#消息堆积" class="headerlink" title="消息堆积"></a>消息堆积</h4><p>  消息中间件的主要功能是异步解耦，还有个重要功能是挡住前端的数据洪峰，保证后端系统的稳定性，这就要求消息中间件具有一定的 消息堆积能力，RocketMQ 采用磁盘文件存储，所以堆积能力比较强，同时提供文件过期删除机制。</p>
+<h4 id="定时消息"><a href="#定时消息" class="headerlink" title="定时消息"></a>定时消息</h4><p>  定时消息（延迟队列）是指消息发送到broker后，不会立即被消费，等待特定时间投递给真正的topic。 broker有配置项messageDelayLevel，默认值为“1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h”，18个level。可以配置自定义messageDelayLevel。注意，messageDelayLevel是broker的属性，不属于某个topic。发消息时，设置delayLevel等级即可：msg.setDelayLevel(level)。level有以下三种情况：</p>
+<ul>
+<li>level &#x3D;&#x3D; 0，消息为非延迟消息</li>
+<li>1&lt;&#x3D;level&lt;&#x3D;maxLevel，消息延迟特定时间，例如level&#x3D;&#x3D;1，延迟1s</li>
+<li>level &gt; maxLevel，则level&#x3D;&#x3D; maxLevel，例如level&#x3D;&#x3D;20，延迟2h</li>
+</ul>
+<p>  定时消息会暂存在名为SCHEDULE_TOPIC_XXXX的topic中，并根据delayTimeLevel存入特定的queue，queueId &#x3D; delayTimeLevel – 1，即一个queue只存相同延迟的消息，保证具有相同发送延迟的消息能够顺序消费。broker会调度地消费SCHEDULE_TOPIC_XXXX，将消息写入真实的topic。</p>
+<p>  需要注意的是，定时消息会在第一次写入和调度写入真实topic时都会计数，因此发送数量、tps都会变高。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/rocketmq_started/02%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5%E5%92%8C%E7%9B%AE%E6%A0%87/">https://nbobj.github.io/blog/rocketmq_started/02设计理念和目标/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rocketmq/">rocketmq</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/rocketmq_started/03%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/">03架构设计</a><a class="next" href="/blog/rocketmq_started/02%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">02基本概念</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5%E5%92%8C%E7%9B%AE%E6%A0%87"><span class="toc-number">1.</span> <span class="toc-text">设计理念和目标</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">设计理念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="toc-number">1.2.</span> <span class="toc-text">设计目标</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E6%B6%88%E6%81%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">顺序消息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4"><span class="toc-number">1.2.2.</span> <span class="toc-text">消息过滤</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">消息存储</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%AB%98%E5%8F%AF%E7%94%A8%EF%BC%88%E7%9C%9F%E7%9A%84%E5%BE%88%E5%83%8Fkafka%EF%BC%89"><span class="toc-number">1.2.4.</span> <span class="toc-text">消息高可用（真的很像kafka）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E6%B6%88%E8%B4%B9%E4%BD%8E%E5%BB%B6%E8%BF%9F"><span class="toc-number">1.2.5.</span> <span class="toc-text">消息消费低延迟</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AE%E4%BF%9D%E6%B6%88%E6%81%AF%E5%BF%85%E9%A1%BB%E8%A2%AB%E6%B6%88%E8%B4%B9%E4%B8%80%E6%AC%A1"><span class="toc-number">1.2.6.</span> <span class="toc-text">确保消息必须被消费一次</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%9B%9E%E6%BA%AF"><span class="toc-number">1.2.7.</span> <span class="toc-text">消息回溯</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF"><span class="toc-number">1.2.8.</span> <span class="toc-text">事务消息</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%87%8D%E8%AF%95"><span class="toc-number">1.2.9.</span> <span class="toc-text">消息重试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%87%8D"><span class="toc-number">1.2.10.</span> <span class="toc-text">消息重</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">1.2.11.</span> <span class="toc-text">流量控制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97"><span class="toc-number">1.2.12.</span> <span class="toc-text">死信队列</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%A0%86%E7%A7%AF"><span class="toc-number">1.2.13.</span> <span class="toc-text">消息堆积</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E6%97%B6%E6%B6%88%E6%81%AF"><span class="toc-number">1.2.14.</span> <span class="toc-text">定时消息</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

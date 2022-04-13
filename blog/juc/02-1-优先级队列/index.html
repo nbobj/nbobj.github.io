@@ -1,0 +1,310 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>02-1-优先级队列 | XYZhi's学习笔记</title><meta name="keywords" content="juc"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前提”[堆排序算法](28 | 堆和堆排序：为什么说堆排序没有快速排序快？ (geekbang.org))“  概念PriorityQueue 一个基于优先级的无界优先级队列。优先级队列的元素按照其自然顺序进行排序，或者根据构造队列时提供的 Comparator 进行排序，具体取决于所使用的构造方法。该队列不允许使用 null 元素也不允许插入不可比较的对象(没有实现Comparable接口的对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="02-1-优先级队列">
+<meta property="og:url" content="https://nbobj.github.io/blog/juc/02-1-%E4%BC%98%E5%85%88%E7%BA%A7%E9%98%9F%E5%88%97/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="前提”[堆排序算法](28 | 堆和堆排序：为什么说堆排序没有快速排序快？ (geekbang.org))“  概念PriorityQueue 一个基于优先级的无界优先级队列。优先级队列的元素按照其自然顺序进行排序，或者根据构造队列时提供的 Comparator 进行排序，具体取决于所使用的构造方法。该队列不允许使用 null 元素也不允许插入不可比较的对象(没有实现Comparable接口的对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2021-11-18T12:00:02.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:31.216Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/juc/02-1-%E4%BC%98%E5%85%88%E7%BA%A7%E9%98%9F%E5%88%97/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '02-1-优先级队列',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:31'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">02-1-优先级队列</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-18T12:00:02.000Z" title="发表于 2021-11-18 20:00:02">2021-11-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:31.216Z" title="更新于 2022-04-13 17:50:31">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/java/">java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="02-1-优先级队列"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>前提”[堆排序算法](<a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/69913">28 | 堆和堆排序：为什么说堆排序没有快速排序快？ (geekbang.org)</a>)“</p>
+</blockquote>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>PriorityQueue 一个基于优先级的无界优先级队列。优先级队列的元素按照其自然顺序进行排序，或者根据构造队列时提供的 Comparator 进行排序，具体取决于所使用的构造方法。该队列不允许使用 null 元素也不允许插入不可比较的对象(没有实现Comparable接口的对象)。</p>
+<p>PriorityQueue 队列的头指排序规则最小那个元素。如果多个元素都是最小值则随机选一个。<br>PriorityQueue 是一个无界队列，但是初始的容量(实际是一个Object[])，随着不断向优先级队列添加元素，其容量会自动扩容，扩容有两种情况，当其内部数组长度小于64时，扩容为两倍，否则增加50%的容量</p>
+<p>PriorityQueue 队列添加元素时使用堆排序，构建了小顶堆。而队列头元素就是堆顶元素，同时也是最小元素。<br>PriorityQueue 队列队头元素出队列就是一个小顶堆移除堆顶元素的过程。</p>
+<blockquote>
+<p>PriorityQueue 队列中的数组其实就是一颗二叉树的中序遍历</p>
+</blockquote>
+<h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">PriorityQueue&lt;String&gt; q = <span class="keyword">new</span> <span class="title class_">PriorityQueue</span>&lt;String&gt;();</span><br><span class="line"><span class="comment">//入列</span></span><br><span class="line">q.offer(<span class="string">&quot;1&quot;</span>);</span><br><span class="line">q.offer(<span class="string">&quot;2&quot;</span>);</span><br><span class="line">q.offer(<span class="string">&quot;5&quot;</span>);</span><br><span class="line">q.offer(<span class="string">&quot;3&quot;</span>);</span><br><span class="line">q.offer(<span class="string">&quot;4&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//出列</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//1</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//2</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//3</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//4</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//5</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//通过改造器指定排序规则</span></span><br><span class="line">PriorityQueue&lt;Student&gt; q = <span class="keyword">new</span> <span class="title class_">PriorityQueue</span>&lt;Student&gt;(<span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Student&gt;() &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Student o1, Student o2)</span> &#123;</span><br><span class="line">        <span class="comment">//按照分数低到高，分数相等按名字</span></span><br><span class="line">        <span class="keyword">if</span>(o1.getScore() == o2.getScore())&#123;</span><br><span class="line">            <span class="keyword">return</span> o1.getName().compareTo(o2.getName());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> o1.getScore() - o2.getScore();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">//入列</span></span><br><span class="line">q.offer(<span class="keyword">new</span> <span class="title class_">Student</span>(<span class="string">&quot;dafei&quot;</span>, <span class="number">20</span>));</span><br><span class="line">q.offer(<span class="keyword">new</span> <span class="title class_">Student</span>(<span class="string">&quot;will&quot;</span>, <span class="number">17</span>));</span><br><span class="line">q.offer(<span class="keyword">new</span> <span class="title class_">Student</span>(<span class="string">&quot;setf&quot;</span>, <span class="number">30</span>));</span><br><span class="line">q.offer(<span class="keyword">new</span> <span class="title class_">Student</span>(<span class="string">&quot;bunny&quot;</span>, <span class="number">20</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">//出列</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//Student&#123;name=&#x27;will&#x27;, score=17&#125;</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//Student&#123;name=&#x27;bunny&#x27;, score=20&#125;</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//Student&#123;name=&#x27;dafei&#x27;, score=20&#125;</span></span><br><span class="line">System.out.println(q.poll());  <span class="comment">//Student&#123;name=&#x27;setf&#x27;, score=30&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>PriorityQueue优先级规则可以由我们根据具体需求而定制， 方式有2种：</p>
+<ol>
+<li>添加元素自身实现了Comparable接口，确保元素是可排序的对象</li>
+<li>如果添加元素没有实现Comparable接口，可以在创建PriorityQueue队列时直接指定比较器。</li>
+</ol>
+<h2 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PriorityQueue</span>&lt;E&gt; <span class="keyword">extends</span> <span class="title class_">AbstractQueue</span>&lt;E&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable &#123;</span><br><span class="line">    <span class="keyword">transient</span> Object[] queue;    <span class="comment">//队列容器， 默认是11</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">0</span>;  <span class="comment">//队列长度，这个size同时也是下一个插入元素的位置</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Comparator&lt;? <span class="built_in">super</span> E&gt; comparator;  <span class="comment">//队列比较器， 为null使用自然排序</span></span><br><span class="line">    <span class="comment">//....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="入队列"><a href="#入队列" class="headerlink" title="入队列"></a>入队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">offer</span><span class="params">(E e)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (e == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    modCount++;</span><br><span class="line">    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> size;</span><br><span class="line">    <span class="comment">// queue这个数组满了后需要扩容</span></span><br><span class="line">    <span class="keyword">if</span> (i &gt;= queue.length)</span><br><span class="line">        <span class="comment">// 队列扩容，当其内部数组长度小于64时，扩容为两倍，否则增加50%的容量</span></span><br><span class="line">        grow(i + <span class="number">1</span>); </span><br><span class="line">    size = i + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (i == <span class="number">0</span>)</span><br><span class="line">        queue[<span class="number">0</span>] = e;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        siftUp(i, e); <span class="comment">//</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">siftUp</span><span class="params">(<span class="type">int</span> k, E x)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (comparator != <span class="literal">null</span>)</span><br><span class="line">        siftUpUsingComparator(k, x);   <span class="comment">//指定比较器</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        siftUpComparable(k, x);   <span class="comment">//没有指定比较器，使用默认的自然比较器</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// siftUpComparable和siftUpUsingComparatork逻辑基本一样，看siftUpComparable就好了</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">siftUpComparable</span><span class="params">(<span class="type">int</span> k, E x)</span> &#123;</span><br><span class="line">    Comparable&lt;? <span class="built_in">super</span> E&gt; key = (Comparable&lt;? <span class="built_in">super</span> E&gt;) x;</span><br><span class="line">    <span class="comment">// 下面的代码有连个作用</span></span><br><span class="line">    <span class="comment">// 1. 保证最小值能在队列头部</span></span><br><span class="line">    <span class="comment">// 2. 保证新插入的元素尽可能靠近队列头部</span></span><br><span class="line">    <span class="keyword">while</span> (k &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">parent</span> <span class="operator">=</span> (k - <span class="number">1</span>) &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">        <span class="type">Object</span> <span class="variable">e</span> <span class="operator">=</span> queue[parent];</span><br><span class="line">        <span class="comment">// </span></span><br><span class="line">        <span class="keyword">if</span> (key.compareTo((E) e) &gt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        queue[k] = e;</span><br><span class="line">        k = parent;</span><br><span class="line">    &#125;</span><br><span class="line">    queue[k] = key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>入队列时，使用了堆排序算法构建了一个小顶堆，这样保证了数组的第一个元素是最小的。</p>
+<h3 id="出队列"><a href="#出队列" class="headerlink" title="出队列"></a>出队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> E <span class="title function_">poll</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (size == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">s</span> <span class="operator">=</span> --size;</span><br><span class="line">    modCount++;</span><br><span class="line">    <span class="type">E</span> <span class="variable">result</span> <span class="operator">=</span> (E) queue[<span class="number">0</span>];</span><br><span class="line">    <span class="type">E</span> <span class="variable">x</span> <span class="operator">=</span> (E) queue[s];</span><br><span class="line">    queue[s] = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (s != <span class="number">0</span>)</span><br><span class="line">        <span class="comment">// 这里会把最小的移动第一个元素位置</span></span><br><span class="line">        siftDown(<span class="number">0</span>, x);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">siftDown</span><span class="params">(<span class="type">int</span> k, E x)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (comparator != <span class="literal">null</span>)</span><br><span class="line">        siftDownUsingComparator(k, x);  <span class="comment">//指定比较器</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        siftDownComparable(k, x);    <span class="comment">//默认比较器</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// siftDownComparable和siftDownUsingComparator逻辑一样</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">siftDownComparable</span><span class="params">(<span class="type">int</span> k, E x)</span> &#123;</span><br><span class="line">    Comparable&lt;? <span class="built_in">super</span> E&gt; key = (Comparable&lt;? <span class="built_in">super</span> E&gt;)x;</span><br><span class="line">    <span class="type">int</span> <span class="variable">half</span> <span class="operator">=</span> size &gt;&gt;&gt; <span class="number">1</span>;        <span class="comment">// loop while a non-leaf</span></span><br><span class="line">    <span class="keyword">while</span> (k &lt; half) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">child</span> <span class="operator">=</span> (k &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>; <span class="comment">// assume left child is least</span></span><br><span class="line">        <span class="type">Object</span> <span class="variable">c</span> <span class="operator">=</span> queue[child];</span><br><span class="line">        <span class="type">int</span> <span class="variable">right</span> <span class="operator">=</span> child + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (right &lt; size &amp;&amp;</span><br><span class="line">            ((Comparable&lt;? <span class="built_in">super</span> E&gt;) c).compareTo((E) queue[right]) &gt; <span class="number">0</span>)</span><br><span class="line">            c = queue[child = right];</span><br><span class="line">        <span class="keyword">if</span> (key.compareTo((E) c) &lt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        queue[k] = c;</span><br><span class="line">        k = child;</span><br><span class="line">    &#125;</span><br><span class="line">    queue[k] = key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>出队列就是删除堆定元素</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/juc/02-1-%E4%BC%98%E5%85%88%E7%BA%A7%E9%98%9F%E5%88%97/">https://nbobj.github.io/blog/juc/02-1-优先级队列/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/juc/">juc</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/juc/02-2-%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/">02-2-延迟队列</a><a class="next" href="/blog/juc/01%E5%9F%BA%E7%A1%80/">01基础</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">基本使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A5%E9%98%9F%E5%88%97"><span class="toc-number">3.1.</span> <span class="toc-text">入队列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BA%E9%98%9F%E5%88%97"><span class="toc-number">3.2.</span> <span class="toc-text">出队列</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

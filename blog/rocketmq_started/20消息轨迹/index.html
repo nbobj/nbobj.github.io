@@ -1,0 +1,332 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>20消息轨迹 | XYZhi's学习笔记</title><meta name="keywords" content="rocketmq"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="消息轨迹是指一条消息从生产者发送到消息队列RocketMQ版服务端，再到消费者消费处理，整个过程中的各个相关节点的时间、状态等数据汇聚而成的完整链路信息。该轨迹可作为生产环境中排查问题强有力的数据支持。 消息轨迹数据消息队列RocketMQ版系统中，一条消息的完整链路包含生产者、服务端、消费者三个角色，每个角色处理消息的过程中都会在轨迹链路中增加相关的信息，将这些信息汇聚即可获取任意消息当前的状态">
+<meta property="og:type" content="article">
+<meta property="og:title" content="20消息轨迹">
+<meta property="og:url" content="https://nbobj.github.io/blog/rocketmq_started/20%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="消息轨迹是指一条消息从生产者发送到消息队列RocketMQ版服务端，再到消费者消费处理，整个过程中的各个相关节点的时间、状态等数据汇聚而成的完整链路信息。该轨迹可作为生产环境中排查问题强有力的数据支持。 消息轨迹数据消息队列RocketMQ版系统中，一条消息的完整链路包含生产者、服务端、消费者三个角色，每个角色处理消息的过程中都会在轨迹链路中增加相关的信息，将这些信息汇聚即可获取任意消息当前的状态">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2022-01-13T23:00:23.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:32.147Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="rocketmq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/rocketmq_started/20%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '20消息轨迹',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">20消息轨迹</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-13T23:00:23.000Z" title="发表于 2022-01-14 07:00:23">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:32.147Z" title="更新于 2022-04-13 17:50:32">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">836</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>2分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="20消息轨迹"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>消息轨迹是指一条消息从生产者发送到消息队列RocketMQ版服务端，再到消费者消费处理，整个过程中的各个相关节点的时间、状态等数据汇聚而成的完整链路信息。该轨迹可作为生产环境中排查问题强有力的数据支持。</p>
+<h3 id="消息轨迹数据"><a href="#消息轨迹数据" class="headerlink" title="消息轨迹数据"></a>消息轨迹数据</h3><p>消息队列RocketMQ版系统中，一条消息的完整链路包含生产者、服务端、消费者三个角色，每个角色处理消息的过程中都会在轨迹链路中增加相关的信息，将这些信息汇聚即可获取任意消息当前的状态。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq_started/5575707863509729459.png" alt="image-20210413003828718"></p>
+<table>
+<thead>
+<tr>
+<th>Producer端</th>
+<th>Broker端</th>
+<th>Consumer端</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>生产实例信息</td>
+<td>消息的Topic</td>
+<td>消费实例信息</td>
+</tr>
+<tr>
+<td>发送消息时间</td>
+<td>消息存储位置</td>
+<td>投递时间,投递轮次</td>
+</tr>
+<tr>
+<td>消息是否发送成功</td>
+<td>消息的Key值</td>
+<td>消息是否消费成功</td>
+</tr>
+<tr>
+<td>发送耗时</td>
+<td>消息的Tag值</td>
+<td>消费耗时</td>
+</tr>
+</tbody></table>
+<h3 id="支持消息轨迹集群部署"><a href="#支持消息轨迹集群部署" class="headerlink" title="支持消息轨迹集群部署"></a>支持消息轨迹集群部署</h3><h4 id="Broker端配置文件"><a href="#Broker端配置文件" class="headerlink" title="Broker端配置文件"></a>Broker端配置文件</h4><p>traceTopicEnable&#x3D;true</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">brokerClusterName=DefaultCluster</span><br><span class="line">brokerName=broker-a</span><br><span class="line">brokerId=0</span><br><span class="line">deleteWhen=04</span><br><span class="line">fileReservedTime=48</span><br><span class="line">brokerRole=ASYNC_MASTER</span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line">storePathRootDir=/data/rocketmq/rootdir-a-m</span><br><span class="line">storePathCommitLog=/data/rocketmq/commitlog-a-m</span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line">## if msg tracing is open,the flag will be true</span><br><span class="line">traceTopicEnable=true</span><br><span class="line">listenPort=10911</span><br><span class="line">brokerIP1=XX.XX.XX.XX1</span><br><span class="line">namesrvAddr=XX.XX.XX.XX:9876</span><br></pre></td></tr></table></figure>
+
+<h3 id="普通模式"><a href="#普通模式" class="headerlink" title="普通模式"></a>普通模式</h3><p>RocketMQ集群中每一个Broker节点均用于存储Client端收集并发送过来的消息轨迹数据。因此，对于RocketMQ集群中的Broker节点数量并无要求和限制。</p>
+<h4 id="物理IO隔离模式"><a href="#物理IO隔离模式" class="headerlink" title="物理IO隔离模式"></a>物理IO隔离模式</h4><p>对于消息轨迹数据量较大的场景，可以在RocketMQ集群中选择其中一个Broker节点专用于存储消息轨迹，使得用户普通的消息数据与消息轨迹数据的物理IO完全隔离，互不影响。在该模式下，RockeMQ集群中至少有两个Broker节点，其中一个Broker节点定义为存储消息轨迹数据的服务端。</p>
+<h4 id="启动开启消息轨迹的Broker"><a href="#启动开启消息轨迹的Broker" class="headerlink" title="启动开启消息轨迹的Broker"></a>启动开启消息轨迹的Broker</h4><p><code>nohup sh mqbroker -c ../conf/broker-trace.properties &amp;</code></p>
+<h3 id="保存消息轨迹的Topic定义"><a href="#保存消息轨迹的Topic定义" class="headerlink" title="保存消息轨迹的Topic定义"></a>保存消息轨迹的Topic定义</h3><p>RocketMQ的消息轨迹特性支持两种存储轨迹数据的方式：</p>
+<h4 id="系统级的TraceTopic"><a href="#系统级的TraceTopic" class="headerlink" title="系统级的TraceTopic"></a>系统级的TraceTopic</h4><p>在默认情况下，消息轨迹数据是存储于系统级的TraceTopic中(其名称为：<strong>RMQ_SYS_TRACE_TOPIC</strong>)。该Topic在Broker节点启动时，会自动创建出来（如上所叙，需要在Broker端的配置文件中将<strong>traceTopicEnable</strong>的开关变量设置为<strong>true</strong>）。</p>
+<p>在producer和consumer的实现类中，提供了一个开关参数(<strong>enableMsgTrace</strong>)来实现消息轨迹是否开启；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">##轨迹消息会默认保存到RMQ_SYS_TRACE_TOPIC这个主题对应的队列中</span><br><span class="line">DefaultMQProducer producer = new DefaultMQProducer(&quot;ProducerGroupName&quot;,true);</span><br><span class="line">......</span><br><span class="line">DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(&quot;CID_JODIE_1&quot;,true);</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<h4 id="用户自定义的TraceTopic"><a href="#用户自定义的TraceTopic" class="headerlink" title="用户自定义的TraceTopic"></a>用户自定义的TraceTopic</h4><p>如果用户不准备将消息轨迹的数据存储于系统级的默认TraceTopic，也可以自己定义并创建用户级的Topic来保存轨迹（即为创建普通的Topic用于保存消息轨迹数据）。在producer和consumer的实现类中，提供了一个开关参数(<strong>enableMsgTrace</strong>)来实现消息轨迹是否开启；并新增一个自定义参数(<strong>customizedTraceTopic</strong>)来实现用户存储消息轨迹数据至自己创建的用户级Topic。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">##其中Topic_test11111需要用户自己预先创建，来保存消息轨迹；</span><br><span class="line">DefaultMQProducer producer = new DefaultMQProducer(&quot;ProducerGroupName&quot;,true,&quot;Topic_test11111&quot;);</span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(&quot;CID_JODIE_1&quot;,true,&quot;Topic_test11111&quot;);</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/rocketmq_started/20%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9/">https://nbobj.github.io/blog/rocketmq_started/20消息轨迹/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rocketmq/">rocketmq</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/rocketmq_started/21%E2%80%9CRequest-Reply%E2%80%9D%E7%89%B9%E6%80%A7/">21“Request-Reply”特性</a><a class="next" href="/blog/rocketmq_started/19%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF%E6%80%BB%E7%BB%93/">19事务消息总结</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9%E6%95%B0%E6%8D%AE"><span class="toc-number">1.</span> <span class="toc-text">消息轨迹数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2"><span class="toc-number">2.</span> <span class="toc-text">支持消息轨迹集群部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Broker%E7%AB%AF%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-number">2.1.</span> <span class="toc-text">Broker端配置文件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%99%AE%E9%80%9A%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">普通模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%A9%E7%90%86IO%E9%9A%94%E7%A6%BB%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.1.</span> <span class="toc-text">物理IO隔离模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%BC%80%E5%90%AF%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9%E7%9A%84Broker"><span class="toc-number">3.2.</span> <span class="toc-text">启动开启消息轨迹的Broker</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E5%AD%98%E6%B6%88%E6%81%AF%E8%BD%A8%E8%BF%B9%E7%9A%84Topic%E5%AE%9A%E4%B9%89"><span class="toc-number">4.</span> <span class="toc-text">保存消息轨迹的Topic定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E7%BA%A7%E7%9A%84TraceTopic"><span class="toc-number">4.1.</span> <span class="toc-text">系统级的TraceTopic</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84TraceTopic"><span class="toc-number">4.2.</span> <span class="toc-text">用户自定义的TraceTopic</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

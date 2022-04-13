@@ -1,0 +1,327 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>12broker处理Consumer拉取消息请求 | XYZhi's学习笔记</title><meta name="keywords" content="rocketmq"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="处理请求拉取消息的RequestCode为PULL_MESSAGE。而这个RequestCode的Processor是PullMessageProcessor。在BrokerController的registerProcessor方法中确认已经确认了。 而该类的processRequest的的核心就是 123GetMessageResult getMessageResult &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="12broker处理Consumer拉取消息请求">
+<meta property="og:url" content="https://nbobj.github.io/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="处理请求拉取消息的RequestCode为PULL_MESSAGE。而这个RequestCode的Processor是PullMessageProcessor。在BrokerController的registerProcessor方法中确认已经确认了。 而该类的processRequest的的核心就是 123GetMessageResult getMessageResult &#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2022-01-14T00:00:14.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:32.751Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="rocketmq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '12broker处理Consumer拉取消息请求',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">12broker处理Consumer拉取消息请求</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:32.751Z" title="更新于 2022-04-13 17:50:32">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="12broker处理Consumer拉取消息请求"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="处理请求"><a href="#处理请求" class="headerlink" title="处理请求"></a>处理请求</h2><p>拉取消息的RequestCode为<code>PULL_MESSAGE</code>。而这个RequestCode的Processor是<code>PullMessageProcessor</code>。在BrokerController的registerProcessor方法中确认已经确认了。</p>
+<p>而该类的<code>processRequest</code>的的核心就是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">GetMessageResult</span> <span class="variable">getMessageResult</span> <span class="operator">=</span></span><br><span class="line">            <span class="built_in">this</span>.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), requestHeader.getTopic(),</span><br><span class="line">                requestHeader.getQueueId(), requestHeader.getQueueOffset(), requestHeader.getMaxMsgNums(), messageFilter)</span><br></pre></td></tr></table></figure>
+
+<p>这行代码，这而这个方法的大致逻辑如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//只保留了核心的逻辑代码</span></span><br><span class="line"><span class="keyword">public</span> GetMessageResult <span class="title function_">getMessage</span><span class="params">(<span class="keyword">final</span> String group, <span class="keyword">final</span> String topic, <span class="keyword">final</span> <span class="type">int</span> queueId, <span class="keyword">final</span> <span class="type">long</span> offset,</span></span><br><span class="line"><span class="params">        <span class="keyword">final</span> <span class="type">int</span> maxMsgNums,</span></span><br><span class="line"><span class="params">        <span class="keyword">final</span> MessageFilter messageFilter)</span> &#123;</span><br><span class="line">  <span class="type">GetMessageResult</span> <span class="variable">getResult</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GetMessageResult</span>();</span><br><span class="line">  <span class="comment">// 获取commitlog文件组中，最大偏移量</span></span><br><span class="line">  <span class="comment">//public long getMaxOffset() &#123;</span></span><br><span class="line">  <span class="comment">//    MappedFile mappedFile = getLastMappedFile();</span></span><br><span class="line">  <span class="comment">//    if (mappedFile != null) &#123;</span></span><br><span class="line">  <span class="comment">//        return mappedFile.getFileFromOffset() + mappedFile.getReadPosition();</span></span><br><span class="line">  <span class="comment">//    &#125;</span></span><br><span class="line">  <span class="comment">//    return 0;</span></span><br><span class="line">  <span class="comment">//&#125;</span></span><br><span class="line">  <span class="comment">//其中getFileFromOffset就是文件名对应的偏移量，getReadPosition获取到的，就是这个文件中已经写入的偏移量</span></span><br><span class="line">  <span class="keyword">final</span> <span class="type">long</span> <span class="variable">maxOffsetPy</span> <span class="operator">=</span> <span class="built_in">this</span>.commitLog.getMaxOffset();</span><br><span class="line">  <span class="comment">// 获取队列</span></span><br><span class="line">  <span class="type">ConsumeQueue</span> <span class="variable">consumeQueue</span> <span class="operator">=</span> findConsumeQueue(topic, queueId);</span><br><span class="line">  <span class="type">SelectMappedBufferResult</span> <span class="variable">bufferConsumeQueue</span> <span class="operator">=</span> consumeQueue.getIndexBuffer(offset);</span><br><span class="line">	<span class="keyword">final</span> <span class="type">int</span> <span class="variable">maxFilterMessageCount</span> <span class="operator">=</span> Math.max(<span class="number">16000</span>, maxMsgNums * ConsumeQueue.CQ_STORE_UNIT_SIZE<span class="comment">/*为20*/</span>);</span><br><span class="line">  <span class="comment">// 因为consumeQueue的一条消息长度为20，所以需要+20</span></span><br><span class="line">	<span class="keyword">for</span> (; i &lt; bufferConsumeQueue.getSize() &amp;&amp; i &lt; maxFilterMessageCount; i += ConsumeQueue.CQ_STORE_UNIT_SIZE) &#123;</span><br><span class="line">    <span class="comment">// 读取一条消息，8个自己的偏移量，4个字节的消息大小，8个自己的tagsCode</span></span><br><span class="line">  	<span class="type">long</span> <span class="variable">offsetPy</span> <span class="operator">=</span> bufferConsumeQueue.getByteBuffer().getLong();</span><br><span class="line">    <span class="type">int</span> <span class="variable">sizePy</span> <span class="operator">=</span> bufferConsumeQueue.getByteBuffer().getInt();</span><br><span class="line">    <span class="type">long</span> <span class="variable">tagsCode</span> <span class="operator">=</span> bufferConsumeQueue.getByteBuffer().getLong();</span><br><span class="line">    maxPhyOffsetPulling = offsetPy;</span><br><span class="line">    <span class="comment">// 从commitlog文件获取消息内容</span></span><br><span class="line">    <span class="type">SelectMappedBufferResult</span> <span class="variable">selectResult</span> <span class="operator">=</span> <span class="built_in">this</span>.commitLog.getMessage(offsetPy, sizePy);</span><br><span class="line">    getResult.addMessage(selectResult);</span><br><span class="line">    status = GetMessageStatus.FOUND;</span><br><span class="line">  &#125;</span><br><span class="line">  getResult.setStatus(status);</span><br><span class="line">  returen getResult</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>核心逻辑就是上边的代码。</p>
+<p>先从逻辑队列consumeQueue中获取到offset 和 size后，然后再从commitlog文件中获取消息的具体内容。</p>
+<p>在这个方法最后还有这样的一段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//todo 当前未被拉取到消费端的消息长度</span></span><br><span class="line"><span class="type">long</span> <span class="variable">diff</span> <span class="operator">=</span> maxOffsetPy - maxPhyOffsetPulling;</span><br><span class="line"><span class="comment">//todo RocketMQ消息常驻内存的大小</span></span><br><span class="line"><span class="type">long</span> <span class="variable">memory</span> <span class="operator">=</span> (<span class="type">long</span>) (StoreUtil.TOTAL_PHYSICAL_MEMORY_SIZE</span><br><span class="line">    * (<span class="built_in">this</span>.messageStoreConfig.getAccessMessageInMemoryMaxRatio() / <span class="number">100.0</span>));</span><br><span class="line"><span class="comment">//todo 设置从服务器拉取</span></span><br><span class="line">getResult.setSuggestPullingFromSlave(diff &gt; memory);</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>maxOffsetPy</code>就会或commitlog文件组中已经写入的最大偏移量。通过<code>commitLog.getMaxOffset()</code>方法获取。而<code>maxPhyOffsetPulling</code>就是这次拉取消息时获取到的最大偏移量。所以<code>diff</code>代表的意思就是当前未被拉取到消费端的消息长度。</p>
+<p>通过<code>StoreUtil.TOTAL_PHYSICAL_MEMORY_SIZE</code>获取到的就是机器的物理内存大小。通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(总内存 * (accessMessageInMemoryMaxRatio / 100))</span><br></pre></td></tr></table></figure>
+
+<p>这样的计算，得出一个阈值，代表broker可用状态的最大内存。所以<code>diff &gt; memory</code>这个比较就是用来判断这个Broker是否可用的。最终把这个值赋值给了resutl的<code>SuggestPullingFromSlave</code>变量。</p>
+<p>我们都知道，消费值一般情况下都是链接Broker的Master来拉取消息的。但由于Broker堆积的消息过多导致了机器的内存占用越来越多。那么通过上边的方法就能判断这个机器的压力。如果压力过大会通知消费值去slave中拉取消息。现在我们看下Broker是怎么通知consumer，当前broker的压力过大的。</p>
+<p>回到<code>PullMessageProcessor#processRequest</code>方法。拉取完消息后会接着会执行这段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">this</span>.brokerController.getBrokerConfig().isSlaveReadEnable()) &#123;</span><br><span class="line">    <span class="comment">// consume too slow ,redirect to another machine</span></span><br><span class="line">    <span class="keyword">if</span> (getMessageResult.isSuggestPullingFromSlave()) &#123;</span><br><span class="line">        responseHeader.setSuggestWhichBrokerId(subscriptionGroupConfig.getWhichBrokerWhenConsumeSlowly());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// consume ok</span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        responseHeader.setSuggestWhichBrokerId(subscriptionGroupConfig.getBrokerId());</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    responseHeader.setSuggestWhichBrokerId(MixAll.MASTER_ID);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意SlaveReadEnable默认值是关闭的。</p>
+</blockquote>
+<p>这行代码就是通知consumer去slave拉取消息的关键。其中当<code>Broker</code>中的<code>slaveReadEnable</code>变量设置为true后，并且当前压力过大了，会返回</p>
+<p><code>subscriptionGroupConfig.getWhichBrokerWhenConsumeSlowly()</code>，这是个方法默认返回1。表示请slave中拉取。如果否就返回<code>MixAll.MASTER_ID</code>，也就是0。最后<code>responseHeader</code>是会传给consumer。这值就是告诉consumer从master还是slave中拉取消息的关键。</p>
+<h2 id="consumer接收消息"><a href="#consumer接收消息" class="headerlink" title="consumer接收消息"></a>consumer接收消息</h2><p>consumer获取到消息后，通过<a href="./10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">10DefaultMQPushConsumer源码分析</a>我们知道，消息最后会在调用一个<code>PullCallback</code>，而这个PullCallback是在</p>
+<p><code>DefaultMQPushConsumerImpl</code>中的<code>pullMessage(final PullRequest pullRequest)</code>方法中定义的。</p>
+<p>在这个<code>PullCallback</code>中有这段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pullResult = DefaultMQPushConsumerImpl.<span class="built_in">this</span>.pullAPIWrapper.processPullResult(pullRequest.getMessageQueue(), pullResult,</span><br><span class="line">                        subscriptionData);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码的核心就是尽心消息过滤的，但有一个副功能，就是这行代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PullAPIWrapper#processPullResult</span></span><br><span class="line"><span class="built_in">this</span>.updatePullFromWhichNode(mq, pullResultExt.getSuggestWhichBrokerId());</span><br></pre></td></tr></table></figure>
+
+<p>这个pullResultExt就是Broker返回pullResult。pullResultExt.getSuggestWhichBrokerId()就是前边说的返回。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PullAPIWrapper</span></span><br><span class="line"><span class="keyword">private</span> ConcurrentMap&lt;MessageQueue, AtomicLong<span class="comment">/* brokerId */</span>&gt; pullFromWhichNodeTable =</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;MessageQueue, AtomicLong&gt;(<span class="number">32</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">updatePullFromWhichNode</span><span class="params">(<span class="keyword">final</span> MessageQueue mq, <span class="keyword">final</span> <span class="type">long</span> brokerId)</span> &#123;</span><br><span class="line">    <span class="type">AtomicLong</span> <span class="variable">suggest</span> <span class="operator">=</span> <span class="built_in">this</span>.pullFromWhichNodeTable.get(mq);</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">null</span> == suggest) &#123;</span><br><span class="line">        <span class="built_in">this</span>.pullFromWhichNodeTable.put(mq, <span class="keyword">new</span> <span class="title class_">AtomicLong</span>(brokerId));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        suggest.set(brokerId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法就是更具队列，去更新BrokerId。这段代码还需要配合consumer去拉取代码中看。也就是<code>DefaultMQPushConsumerImpl</code>中的<code>pullMessage(final PullRequest pullRequest)</code>方法，这方法实际是通过<code>this.pullAPIWrapper.pullKernelImpl</code>去拉取消息的。看这个方法的开头</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//PullAPIWrapper</span></span><br><span class="line"><span class="type">FindBrokerResult</span> <span class="variable">findBrokerResult</span> <span class="operator">=</span></span><br><span class="line">            <span class="built_in">this</span>.mQClientFactory.findBrokerAddressInSubscribe(mq.getBrokerName(),</span><br><span class="line">                <span class="built_in">this</span>.recalculatePullFromWhichNode(mq), <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">long</span> <span class="title function_">recalculatePullFromWhichNode</span><span class="params">(<span class="keyword">final</span> MessageQueue mq)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.isConnectBrokerByUser()) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.defaultBrokerId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">AtomicLong</span> <span class="variable">suggest</span> <span class="operator">=</span> <span class="built_in">this</span>.pullFromWhichNodeTable.get(mq);</span><br><span class="line">    <span class="keyword">if</span> (suggest != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> suggest.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> MixAll.MASTER_ID;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没错，这里就是根据BrokerName和BrokerId去获取Broker的地址。所以如果broker返回的pullResult中的<code>SuggestWhichBrokerId</code>为1，就表示需要去slave中拉取消息，为0就需要去master中拉取消息</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/">https://nbobj.github.io/blog/rocketmq/12broker处理Consumer拉取消息请求/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rocketmq/">rocketmq</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/">13消息过滤</a><a class="next" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">11消费者的负载均衡</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E8%AF%B7%E6%B1%82"><span class="toc-number">1.</span> <span class="toc-text">处理请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#consumer%E6%8E%A5%E6%94%B6%E6%B6%88%E6%81%AF"><span class="toc-number">2.</span> <span class="toc-text">consumer接收消息</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>02-3-ScheduledThreadPoolExecutor | XYZhi's学习笔记</title><meta name="keywords" content="juc"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前提ThreadPoolExecutor  ScheduledThreadPoolExecutor的类图如下：  ScheduledThreadPoolExecutor本质上是线程池，而且它实现了ScheduledExecutorService接口，也决定了它与Threadpoolexecutor的不同，使得ScheduledThreadPoolExecutor支持任务调度 源码添加任务 构造方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="02-3-ScheduledThreadPoolExecutor">
+<meta property="og:url" content="https://nbobj.github.io/blog/juc/02-3-ScheduledThreadPoolExecutor/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="前提ThreadPoolExecutor  ScheduledThreadPoolExecutor的类图如下：  ScheduledThreadPoolExecutor本质上是线程池，而且它实现了ScheduledExecutorService接口，也决定了它与Threadpoolexecutor的不同，使得ScheduledThreadPoolExecutor支持任务调度 源码添加任务 构造方">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2021-11-18T12:00:04.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:31.230Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="juc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/juc/02-3-ScheduledThreadPoolExecutor/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '02-3-ScheduledThreadPoolExecutor',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:31'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">02-3-ScheduledThreadPoolExecutor</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-11-18T12:00:04.000Z" title="发表于 2021-11-18 20:00:04">2021-11-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:31.230Z" title="更新于 2022-04-13 17:50:31">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/java/">java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="02-3-ScheduledThreadPoolExecutor"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>前提ThreadPoolExecutor</p>
+</blockquote>
+<p>ScheduledThreadPoolExecutor的类图如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/juc/5575707863509729283.png" alt="image-20220409032332184"></p>
+<p>ScheduledThreadPoolExecutor本质上是线程池，而且它实现了<code>ScheduledExecutorService</code>接口，也决定了它与<code>Threadpoolexecutor</code>的不同，使得<code>ScheduledThreadPoolExecutor</code>支持任务调度</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><h3 id="添加任务"><a href="#添加任务" class="headerlink" title="添加任务"></a>添加任务</h3><ul>
+<li>构造方法</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">ScheduledThreadPoolExecutor</span><span class="params">(<span class="type">int</span> corePoolSize,</span></span><br><span class="line"><span class="params">                                   ThreadFactory threadFactory,</span></span><br><span class="line"><span class="params">                                   RejectedExecutionHandler handler)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(corePoolSize, Integer.MAX_VALUE, <span class="number">0</span>, NANOSECONDS,</span><br><span class="line">          <span class="keyword">new</span> <span class="title class_">DelayedWorkQueue</span>(), threadFactory, handler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>队列为<code>DelayedWorkQueue</code>，虽然它不是<code>DelayQueue</code>，但是该类的逻辑和代码和<code>DelayQueue</code>基本一样。不同的是<code>DelayedWorkQueue</code>只能接受<code>RunnableScheduledFuture</code>类型的元素</p>
+<ul>
+<li>schedule</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ScheduledFuture&lt;?&gt; schedule(Runnable command,</span><br><span class="line">                                   <span class="type">long</span> delay,</span><br><span class="line">                                   TimeUnit unit) &#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="literal">null</span> || unit == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    RunnableScheduledFuture&lt;?&gt; t = decorateTask(command,</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ScheduledFutureTask</span>&lt;Void&gt;(command, <span class="literal">null</span>,</span><br><span class="line">                                      triggerTime(delay, unit)));</span><br><span class="line">    <span class="comment">// 该方法就是往队列中添加RunnableScheduledFuture</span></span><br><span class="line">  	delayedExecute(t);</span><br><span class="line">    <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>decorateTask</code>方法是一个扩展方法，其默认实现就是把把传入的<code>ScheduledFutureTask</code>返回</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> &lt;V&gt; RunnableScheduledFuture&lt;V&gt; <span class="title function_">decorateTask</span><span class="params">(</span></span><br><span class="line"><span class="params">    Runnable runnable, RunnableScheduledFuture&lt;V&gt; task)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> task;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>ScheduledFutureTask是RunnableScheduledFuture的实现</p>
+</blockquote>
+<ul>
+<li>scheduleWithFixedDelay</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ScheduledFuture&lt;?&gt; scheduleWithFixedDelay(Runnable command,</span><br><span class="line">                                                 <span class="type">long</span> initialDelay,</span><br><span class="line">                                                 <span class="type">long</span> delay,</span><br><span class="line">                                                 TimeUnit unit) &#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="literal">null</span> || unit == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    <span class="keyword">if</span> (delay &lt;= <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>();</span><br><span class="line">    ScheduledFutureTask&lt;Void&gt; sft =</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ScheduledFutureTask</span>&lt;Void&gt;(command,</span><br><span class="line">                                      <span class="literal">null</span>,</span><br><span class="line">                                      triggerTime(initialDelay, unit),</span><br><span class="line">                                      unit.toNanos(-delay));</span><br><span class="line">    RunnableScheduledFuture&lt;Void&gt; t = decorateTask(command, sft);</span><br><span class="line">    sft.outerTask = t;</span><br><span class="line">    delayedExecute(t);</span><br><span class="line">    <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>scheduleAtFixedRate</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ScheduledFuture&lt;?&gt; scheduleAtFixedRate(Runnable command,</span><br><span class="line">                                              <span class="type">long</span> initialDelay,</span><br><span class="line">                                              <span class="type">long</span> period,</span><br><span class="line">                                              TimeUnit unit) &#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="literal">null</span> || unit == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    <span class="keyword">if</span> (period &lt;= <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>();</span><br><span class="line">    ScheduledFutureTask&lt;Void&gt; sft =</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">ScheduledFutureTask</span>&lt;Void&gt;(command,</span><br><span class="line">                                      <span class="literal">null</span>,</span><br><span class="line">                                      triggerTime(initialDelay, unit),</span><br><span class="line">                                      unit.toNanos(period));</span><br><span class="line">    RunnableScheduledFuture&lt;Void&gt; t = decorateTask(command, sft);</span><br><span class="line">    sft.outerTask = t;</span><br><span class="line">    delayedExecute(t);</span><br><span class="line">    <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<code>scheduleAtFixedRate</code>和<code>scheduleWithFixedDelay</code>基本是一模一样的，唯一的不同就是创建<code>ScheduledFutureTask</code>中第4个参数传的值。一个是正的，一个是负的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">scheduleWithFixedDelay</span><br><span class="line">new ScheduledFutureTask&lt;Void&gt;(command, null, triggerTime(initialDelay, unit), unit.toNanos(-period))</span><br><span class="line"></span><br><span class="line">scheduleAtFixedRate</span><br><span class="line">new ScheduledFutureTask&lt;Void&gt;(command, null, triggerTime(initialDelay, unit), unit.toNanos(delay));</span><br></pre></td></tr></table></figure>
+
+<p>这个参数的正负决定了任务执行周期的的不同，这个不同点在讲解<code>ScheduledFutureTask</code>中的时候再说。</p>
+<p>而<code>schedule</code>与<code>schedule...</code>方法执行的逻辑也是一样的，唯一的不同也是在构建<code>ScheduledFutureTask</code>时，使用了不同的构造器，这也是决定了这<code>schedule</code>添加的任务只会执行一次，而<code>schedule...</code>添加的任务支持周期执行。</p>
+<h3 id="任务拉取"><a href="#任务拉取" class="headerlink" title="任务拉取"></a>任务拉取</h3><p><code>ScheduledThreadPoolExecutor</code>的本质其实还是一个<code>ThreadPoolExecutor</code>，任务的拉取逻辑还是和<code>ThreadPoolExecutor</code>一样的。不过由于<code>ScheduledThreadPoolExecutor</code>是指定了<code>DelayedWorkQueue</code>作为任务队列，所以<code>ScheduledThreadPoolExecutor</code>在获取任务上多了”任务到了执行时间才返回“这一逻辑，其逻辑的源码就在DelayedWorkQueue的<code>take</code>和<code>poll</code>方法中</p>
+<h3 id="任务执行——ScheduledFutureTask"><a href="#任务执行——ScheduledFutureTask" class="headerlink" title="任务执行——ScheduledFutureTask"></a>任务执行——ScheduledFutureTask</h3><p>先看ScheduledFutureTask类图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/juc/5575707863509729284.png" alt="image-20220409040901928"></p>
+<p>它的本质是一个Runnable，同时它也是<code>ScheduledThreadPoolExecutor</code>中的延迟队列<code>DelayedWorkQueue</code>接收的元素。该类决定了任务的延迟多久才执行。</p>
+<p>先看该类的定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">class</span> <span class="title class_">ScheduledFutureTask</span>&lt;V&gt;</span><br><span class="line">        <span class="keyword">extends</span> <span class="title class_">FutureTask</span>&lt;V&gt; <span class="keyword">implements</span> <span class="title class_">RunnableScheduledFuture</span>&lt;V&gt; &#123;</span><br><span class="line">    <span class="comment">// 该参数决定了任务在什么时候执行</span></span><br><span class="line">  	<span class="keyword">private</span> <span class="type">long</span> time;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个参数决定了任务是否需要周期执行，该值可以为小于0的数，小于0时time的计算逻辑和大于0时计算逻辑会不同。等于0表示该任务只执行一次</span></span><br><span class="line">    <span class="comment">// 小于0：time = now() + period</span></span><br><span class="line">    <span class="comment">// 大于0：time = time + period</span></span><br><span class="line">  	<span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> period;</span><br><span class="line">    ScheduledFutureTask(Runnable r, V result, <span class="type">long</span> ns) &#123;</span><br><span class="line">        <span class="built_in">super</span>(r, result);</span><br><span class="line">        <span class="built_in">this</span>.time = ns;</span><br><span class="line">        <span class="built_in">this</span>.period = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">this</span>.sequenceNumber = sequencer.getAndIncrement();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ScheduledFutureTask(Runnable r, V result, <span class="type">long</span> ns, <span class="type">long</span> period) &#123;</span><br><span class="line">        <span class="built_in">super</span>(r, result);</span><br><span class="line">        <span class="built_in">this</span>.time = ns;</span><br><span class="line">        <span class="built_in">this</span>.period = period;</span><br><span class="line">        <span class="built_in">this</span>.sequenceNumber = sequencer.getAndIncrement();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参数的意义：</p>
+<ul>
+<li><p>Ruunable r：用户定义的任务逻辑</p>
+</li>
+<li><p>time：该值是一个时间戳，决定了任务在什么时候执行</p>
+<p>该值的初始值的计算逻辑都是一样的，看前面的那3个方法，都是通过<code>triggerTime</code>方法计算的，这个方法的逻辑</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="title function_">triggerTime</span><span class="params">(<span class="type">long</span> delay)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> now() +</span><br><span class="line">        ((delay &lt; (Long.MAX_VALUE &gt;&gt; <span class="number">1</span>)) ? delay : overflowFree(delay));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>虽然会有判断，但大部分情况都是执行<code>now() + delay</code></p>
+</li>
+<li><p>period：这个参数决定了任务是否需要周期执行。等于0时表示该任务只执行一次；注意该值可以小于0，小于0和大于0对重新计算time的值得逻辑是不同的：</p>
+<p>大于0时：time &#x3D; time + period</p>
+<p>小于0时：time &#x3D; now() + | period |</p>
+</li>
+</ul>
+<p>下面看该类的run方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// isPeriodic 的逻辑就是 period != 0</span></span><br><span class="line">    <span class="type">boolean</span> <span class="variable">periodic</span> <span class="operator">=</span> isPeriodic();</span><br><span class="line">    <span class="keyword">if</span> (!canRunInCurrentRunState(periodic))</span><br><span class="line">        cancel(<span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!periodic)</span><br><span class="line">        <span class="comment">// 调用了schedule、ThreadPoolExecutor#execute、ThreadPoolExecutor#submit的都会走到这里</span></span><br><span class="line">        ScheduledFutureTask.<span class="built_in">super</span>.run();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (ScheduledFutureTask.<span class="built_in">super</span>.runAndReset()) &#123;</span><br><span class="line">        <span class="comment">// 调用了scheduleAtFixedRate和scheduleWithFixedDelay的会走到这里</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 该方法就是设置任务下一次执行的时间</span></span><br><span class="line">        setNextRunTime();</span><br><span class="line">        <span class="comment">// 把任务重新加入到延迟队列</span></span><br><span class="line">        reExecutePeriodic(outerTask);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看这块代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (ScheduledFutureTask.<span class="built_in">super</span>.runAndReset()) &#123;</span><br><span class="line">    <span class="comment">// 调用了scheduleAtFixedRate和scheduleWithFixedDelay的会走到这里</span></span><br><span class="line">  </span><br><span class="line">   	<span class="comment">// 该方法就是设置任务下一次执行的时间</span></span><br><span class="line">    setNextRunTime();</span><br><span class="line">    reExecutePeriodic(outerTask);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>runAndReset</code>就是执行了任务，它和<code>run</code>的不同点在于，<code>run</code>方法在任务执行完后执行<code>set(result)</code>，把执行结果设置到<code>Future</code>中，而<code>runAndReset</code>不会，只是单纯的执行任务而已。下面就是其源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FutureTask    </span></span><br><span class="line"><span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">runAndReset</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state != NEW ||</span><br><span class="line">        !UNSAFE.compareAndSwapObject(<span class="built_in">this</span>, runnerOffset,</span><br><span class="line">                                     <span class="literal">null</span>, Thread.currentThread()))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">ran</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="type">int</span> <span class="variable">s</span> <span class="operator">=</span> state;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Callable&lt;V&gt; c = callable;</span><br><span class="line">        <span class="keyword">if</span> (c != <span class="literal">null</span> &amp;&amp; s == NEW) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                c.call(); <span class="comment">// don&#x27;t set result</span></span><br><span class="line">                ran = <span class="literal">true</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">                setException(ex);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// run方法多了下面的逻辑</span></span><br><span class="line">          	<span class="comment">// if (ran)</span></span><br><span class="line">            <span class="comment">//  set(result);</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// runner must be non-null until state is settled to</span></span><br><span class="line">        <span class="comment">// prevent concurrent calls to run()</span></span><br><span class="line">        runner = <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">// state must be re-read after nulling runner to prevent</span></span><br><span class="line">        <span class="comment">// leaked interrupts</span></span><br><span class="line">        s = state;</span><br><span class="line">        <span class="keyword">if</span> (s &gt;= INTERRUPTING)</span><br><span class="line">            handlePossibleCancellationInterrupt(s);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ran &amp;&amp; s == NEW;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当任务执行完后会执行<code>setNextRunTime</code>方法，来设置任务下一次执行的时间，看源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">setNextRunTime</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">p</span> <span class="operator">=</span> period;</span><br><span class="line">    <span class="keyword">if</span> (p &gt; <span class="number">0</span>)</span><br><span class="line">        time += p;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment">// triggerTime的逻辑其实就是now() + (-p)</span></span><br><span class="line">        time = triggerTime(-p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法就解析了<code>ScheduledFutureTask</code>中的<code>period</code>小于0和大于0的区别</p>
+<ul>
+<li>当period大于0时，time  &#x3D; time + period</li>
+<li>当period大于0时，time &#x3D; now() + | period |</li>
+</ul>
+<p>这样的计算逻辑也影响了任务执行的周期</p>
+<ul>
+<li><p>当period大于0时，time  &#x3D; time + period。假设period &#x3D; 3s，任务执行需要1s，此时任务的执行周期如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/juc/5575707863509729285.png" alt="image-20220409170224641"></p>
+<blockquote>
+<p>如果period &lt; 任务执行时间，那么会在任务执行完成后马上接着执行</p>
+</blockquote>
+<p>这种情况下执行的周期是按<strong>固定频率</strong>的，该频率计算如下：<br>$$<br>F_n &#x3D; F_{(n-1)} + p<br>$$</p>
+</li>
+<li><p>当period小于0是，time &#x3D;now() + | period |。假设period &#x3D; 1s，任务执行需要1s，此时任务的执行周期如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/juc/5575707863509729286.png" alt="image-20220409171131193"></p>
+<p>这种情况下一个任务的执行时间是从上一个任务的执行完成时间开始按<strong>固定延迟执</strong>计算的</p>
+</li>
+</ul>
+<p>最后的<code>reExecutePeriodic</code>方法就是把任务重新添加到延迟队列中</p>
+<h2 id="scheduleAtFixedRate和scheduleWithFixedDelay的不同"><a href="#scheduleAtFixedRate和scheduleWithFixedDelay的不同" class="headerlink" title="scheduleAtFixedRate和scheduleWithFixedDelay的不同"></a>scheduleAtFixedRate和scheduleWithFixedDelay的不同</h2><p>从源码上看这两个方法唯一的不同就是在构建<code>ScheduledFutureTask</code>时，传的<code>period</code>属性的值一个正一个为负</p>
+<ul>
+<li>scheduleAtFixedRate：传入的<code>period</code>属性的值为正数</li>
+<li>scheduleWithFixedDelay：传入的<code>period</code>属性的值为负数</li>
+</ul>
+<p>从执行的角度看</p>
+<ul>
+<li><p>scheduleAtFixedRate：是<strong>固定频率</strong>执行，所谓的固定频率就是相对于任务的开始时间，执行时间的计算公式如下：<br>$$<br>Time_n &#x3D; Time_{n - 1} + period<br>$$</p>
+</li>
+<li><p>scheduleWithFixedDelay：是<strong>固定延迟</strong>执行，固定延迟是相对于任务执行的结束时间，执行时间的计算公式如下：<br>$$<br>Time_n &#x3D; TaskEnd_{n-1} + |period|<br>$$</p>
+<blockquote>
+<p>TaskEnd为任务执行的完成的时间</p>
+</blockquote>
+</li>
+</ul>
+<p>再开发中用得最多的是<code>scheduleWithFixedDelay</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/juc/02-3-ScheduledThreadPoolExecutor/">https://nbobj.github.io/blog/juc/02-3-ScheduledThreadPoolExecutor/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/juc/">juc</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/juc/AQS/">AQS</a><a class="next" href="/blog/juc/02-2-%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/">02-2-延迟队列</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81"><span class="toc-number">1.</span> <span class="toc-text">源码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.1.</span> <span class="toc-text">添加任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E6%8B%89%E5%8F%96"><span class="toc-number">1.2.</span> <span class="toc-text">任务拉取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E6%89%A7%E8%A1%8C%E2%80%94%E2%80%94ScheduledFutureTask"><span class="toc-number">1.3.</span> <span class="toc-text">任务执行——ScheduledFutureTask</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#scheduleAtFixedRate%E5%92%8CscheduleWithFixedDelay%E7%9A%84%E4%B8%8D%E5%90%8C"><span class="toc-number">2.</span> <span class="toc-text">scheduleAtFixedRate和scheduleWithFixedDelay的不同</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

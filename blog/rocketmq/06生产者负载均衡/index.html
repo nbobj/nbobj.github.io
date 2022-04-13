@@ -1,0 +1,347 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>06生产者负载均衡 | XYZhi's学习笔记</title><meta name="keywords" content="rocketmq"><meta name="author" content="xyz"><meta name="copyright" content="xyz"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="负载均衡是由MQFaultStrategy实现的 在发送消息的方法DefaultMQProducerImpl.sendDefaultImpl中，会根据topic获取到TopicPublishInfo，而这个TopicPublishInfo的信息如下  可以看到，这个类包含了队列信息。 在获取了队列的路由信息后，会调用 1MessageQueue mqSelected &#x3D; this.selectOn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="06生产者负载均衡">
+<meta property="og:url" content="https://nbobj.github.io/blog/rocketmq/06%E7%94%9F%E4%BA%A7%E8%80%85%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/index.html">
+<meta property="og:site_name" content="XYZhi&#39;s学习笔记">
+<meta property="og:description" content="负载均衡是由MQFaultStrategy实现的 在发送消息的方法DefaultMQProducerImpl.sendDefaultImpl中，会根据topic获取到TopicPublishInfo，而这个TopicPublishInfo的信息如下  可以看到，这个类包含了队列信息。 在获取了队列的路由信息后，会调用 1MessageQueue mqSelected &#x3D; this.selectOn">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nbobj.github.io/linear-gradient(#0062be)">
+<meta property="article:published_time" content="2022-01-14T00:00:06.000Z">
+<meta property="article:modified_time" content="2022-04-13T09:50:32.517Z">
+<meta property="article:author" content="xyz">
+<meta property="article:tag" content="rocketmq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nbobj.github.io/linear-gradient(#0062be)"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://nbobj.github.io/blog/rocketmq/06%E7%94%9F%E4%BA%A7%E8%80%85%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: xyz","link":"链接: ","source":"来源: XYZhi's学习笔记","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '06生产者负载均衡',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-04-13 17:50:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(#0062be)"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">06生产者负载均衡</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-14T00:00:06.000Z" title="发表于 2022-01-14 08:00:06">2022-01-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-04-13T09:50:32.517Z" title="更新于 2022-04-13 17:50:32">2022-04-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="06生产者负载均衡"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>负载均衡是由<code>MQFaultStrategy</code>实现的</p>
+<p>在发送消息的方法<code>DefaultMQProducerImpl.sendDefaultImpl</code>中，会根据topic获取到<code>TopicPublishInfo</code>，而这个<code>TopicPublishInfo</code>的信息如下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729537.png" alt="image-20211116210906103"></p>
+<p>可以看到，这个类包含了队列信息。</p>
+<p>在获取了队列的路由信息后，会调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">MessageQueue</span> <span class="variable">mqSelected</span> <span class="operator">=</span> <span class="built_in">this</span>.selectOneMessageQueue(topicPublishInfo, lastBrokerName);</span><br></pre></td></tr></table></figure>
+
+<p>来选择某个Broker的某个队列发送数据，而获取到的<code>MessageQueue</code>信息如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729538.png" alt="image-20211116211737057"></p>
+<p>可以看到，这里获取了topic在某个Broker上的0号队列。</p>
+<p>现在看这行代码获取队列的源码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//DefaultMQProductImpl</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">MQFaultStrategy</span> <span class="variable">mqFaultStrategy</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MQFaultStrategy</span>();</span><br><span class="line"><span class="keyword">public</span> MessageQueue <span class="title function_">selectOneMessageQueue</span><span class="params">(<span class="keyword">final</span> TopicPublishInfo tpInfo, <span class="keyword">final</span> String lastBrokerName)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.mqFaultStrategy.selectOneMessageQueue(tpInfo, lastBrokerName);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的<code>lastBrokerName</code>是上一次选中的Broker，发送消息时可能发送失败，而RockerMQ有重试机制。所以<code>lastBrokerName</code>可以理解为发送失败的Broker名字。继续看源码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MQFaultStrategy</span></span><br><span class="line"><span class="keyword">public</span> MessageQueue <span class="title function_">selectOneMessageQueue</span><span class="params">(<span class="keyword">final</span> TopicPublishInfo tpInfo, <span class="keyword">final</span> String lastBrokerName)</span> &#123;</span><br><span class="line">    <span class="comment">//todo 默认不走这里：Broker故障延迟机制</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.sendLatencyFaultEnable) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//todo 遍历队列，判断该Broker是否可用(),删除一段时间内不可用的Broker</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> tpInfo.getSendWhichQueue().getAndIncrement();</span><br><span class="line">            <span class="comment">//对消息队列轮询获取一个队列</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; tpInfo.getMessageQueueList().size(); i++) &#123;</span><br><span class="line">                <span class="comment">//基于index和队列数量取余，确定位置</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> Math.abs(index++) % tpInfo.getMessageQueueList().size();</span><br><span class="line">                <span class="keyword">if</span> (pos &lt; <span class="number">0</span>)</span><br><span class="line">                    pos = <span class="number">0</span>;</span><br><span class="line">                <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> tpInfo.getMessageQueueList().get(pos);</span><br><span class="line">                <span class="keyword">if</span> (latencyFaultTolerance.isAvailable(mq.getBrokerName()))</span><br><span class="line">                    <span class="keyword">return</span> mq;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//todo 如果预测的所有broker都不可用，则随机选择一个broker,随机选择该Broker下一个队列进行发送</span></span><br><span class="line">            <span class="keyword">final</span> <span class="type">String</span> <span class="variable">notBestBroker</span> <span class="operator">=</span> latencyFaultTolerance.pickOneAtLeast();</span><br><span class="line">            <span class="comment">//获得Broker的写队列集合</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">writeQueueNums</span> <span class="operator">=</span> tpInfo.getQueueIdByBroker(notBestBroker);</span><br><span class="line">            <span class="keyword">if</span> (writeQueueNums &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">final</span> <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> tpInfo.selectOneMessageQueue();</span><br><span class="line">                <span class="keyword">if</span> (notBestBroker != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">//获得一个队列,指定broker和队列ID并返回</span></span><br><span class="line">                    mq.setBrokerName(notBestBroker);</span><br><span class="line">                    mq.setQueueId(tpInfo.getSendWhichQueue().getAndIncrement() % writeQueueNums);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> mq;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                latencyFaultTolerance.remove(notBestBroker);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;Error occurred when selecting message queue&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> tpInfo.selectOneMessageQueue();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//todo 默认走这里</span></span><br><span class="line">    <span class="keyword">return</span> tpInfo.selectOneMessageQueue(lastBrokerName);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里涉及到两种Producer的负载均衡策略。</p>
+<h2 id="默认策略"><a href="#默认策略" class="headerlink" title="默认策略"></a>默认策略</h2><p>在默认情况下是通过<code>TopicPublishInfo#selectOneMessageQueue</code>来选择一个队列的，看源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//TopicPublishInfo</span></span><br><span class="line"><span class="keyword">public</span> MessageQueue <span class="title function_">selectOneMessageQueue</span><span class="params">(<span class="keyword">final</span> String lastBrokerName)</span> &#123;</span><br><span class="line">    <span class="comment">//todo lastBrokerName 是每次发送一条消息时保存的临时变量</span></span><br><span class="line">    <span class="comment">//第一次选择队列（非重试）</span></span><br><span class="line">    <span class="keyword">if</span> (lastBrokerName == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> selectOneMessageQueue();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//重试发送时的消息发送</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="built_in">this</span>.messageQueueList.size(); i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> <span class="built_in">this</span>.sendWhichQueue.getAndIncrement();</span><br><span class="line">            <span class="comment">//遍历消息队列集合</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> Math.abs(index) % <span class="built_in">this</span>.messageQueueList.size();</span><br><span class="line">            <span class="keyword">if</span> (pos &lt; <span class="number">0</span>)</span><br><span class="line">                pos = <span class="number">0</span>;</span><br><span class="line">            <span class="comment">//重试中，规避上次Broker队列</span></span><br><span class="line">            <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> <span class="built_in">this</span>.messageQueueList.get(pos);</span><br><span class="line">            <span class="keyword">if</span> (!mq.getBrokerName().equals(lastBrokerName)) &#123;</span><br><span class="line">                <span class="keyword">return</span> mq;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果没有集群，或者没得选，还是按照第一次选择队列</span></span><br><span class="line">        <span class="keyword">return</span> selectOneMessageQueue();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//todo 默认选择选择队列</span></span><br><span class="line"><span class="keyword">public</span> MessageQueue <span class="title function_">selectOneMessageQueue</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//todo sendWhichQueue自增(这里使用的 ThreadLocal)</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> <span class="built_in">this</span>.sendWhichQueue.getAndIncrement();</span><br><span class="line">    <span class="comment">//对队列大小取模</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> Math.abs(index) % <span class="built_in">this</span>.messageQueueList.size();</span><br><span class="line">    <span class="keyword">if</span> (pos &lt; <span class="number">0</span>)</span><br><span class="line">        pos = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//返回对应的队列</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.messageQueueList.get(pos);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>lastBrokerName就是上一次选中的Broker。</p>
+</blockquote>
+<p>代码很好理解，可以理解为轮询队列列表，如果发消息出现失败重试，在重试时会规避上一次选中的队列所在的Broker。如果全部队列都失败了，还是按照第一次选择的队列。</p>
+<p>这里方法的核心是在<code>sendWhichQueue.getAndIncrement</code>，看源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//sendWhichQueue就是ThreadLocalIndex类型</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ThreadLocalIndex</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ThreadLocal&lt;Integer&gt; threadLocalIndex = <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;Integer&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Random</span> <span class="variable">random</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getAndIncrement</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">Integer</span> <span class="variable">index</span> <span class="operator">=</span> <span class="built_in">this</span>.threadLocalIndex.get();</span><br><span class="line">        <span class="keyword">if</span> (<span class="literal">null</span> == index) &#123;</span><br><span class="line">            index = Math.abs(random.nextInt());</span><br><span class="line">            <span class="built_in">this</span>.threadLocalIndex.set(index);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        index = Math.abs(index + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">this</span>.threadLocalIndex.set(index);</span><br><span class="line">        <span class="keyword">return</span> index;</span><br><span class="line">    &#125;</span><br><span class="line">  ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个类可以理解为随机自增选择器，Producer在不同的线程中调用send方法时，先随机生成一个数，然后对这个数自增。接着同过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Math.abs(index) % this.messageQueueList.size();</span><br></pre></td></tr></table></figure>
+
+<p>来取模，也就是轮询。</p>
+<h2 id="latencyFaultTolerance（故障延迟机制）"><a href="#latencyFaultTolerance（故障延迟机制）" class="headerlink" title="latencyFaultTolerance（故障延迟机制）"></a>latencyFaultTolerance（故障延迟机制）</h2><p>要启用这个策略，需要执行<code>DefaultMqProduct.setSendLatencyFaultEnable(true)</code>来开启。看源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MQFaultStrategy</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="type">InternalLogger</span> <span class="variable">log</span> <span class="operator">=</span> ClientLogger.getLog();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> LatencyFaultTolerance&lt;String&gt; latencyFaultTolerance = <span class="keyword">new</span> <span class="title class_">LatencyFaultToleranceImpl</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">sendLatencyFaultEnable</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">//todo 阿里的经验值</span></span><br><span class="line">    <span class="comment">//发送延时</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">long</span>[] latencyMax = &#123;<span class="number">50L</span>, <span class="number">100L</span>, <span class="number">550L</span>, <span class="number">1000L</span>, <span class="number">2000L</span>, <span class="number">3000L</span>, <span class="number">15000L</span>&#125;;</span><br><span class="line">    <span class="comment">//故障规避</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">long</span>[] notAvailableDuration = &#123;<span class="number">0L</span>, <span class="number">0L</span>, <span class="number">30000L</span>, <span class="number">60000L</span>, <span class="number">120000L</span>, <span class="number">180000L</span>, <span class="number">600000L</span>&#125;;</span><br><span class="line"></span><br><span class="line">  	....</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> MessageQueue <span class="title function_">selectOneMessageQueue</span><span class="params">(<span class="keyword">final</span> TopicPublishInfo tpInfo, <span class="keyword">final</span> String lastBrokerName)</span> &#123;</span><br><span class="line">        <span class="comment">//todo 默认不走这里：Broker故障延迟机制</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.sendLatencyFaultEnable) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">//todo 遍历队列，判断该Broker是否可用(),删除一段时间内不可用的Broker</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> tpInfo.getSendWhichQueue().getAndIncrement();</span><br><span class="line">                <span class="comment">//对消息队列轮询获取一个队列</span></span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; tpInfo.getMessageQueueList().size(); i++) &#123;</span><br><span class="line">                    <span class="comment">//基于index和队列数量取余，确定位置</span></span><br><span class="line">                    <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> Math.abs(index++) % tpInfo.getMessageQueueList().size();</span><br><span class="line">                    <span class="keyword">if</span> (pos &lt; <span class="number">0</span>)</span><br><span class="line">                        pos = <span class="number">0</span>;</span><br><span class="line">                    <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> tpInfo.getMessageQueueList().get(pos);</span><br><span class="line">                    <span class="keyword">if</span> (latencyFaultTolerance.isAvailable(mq.getBrokerName()))</span><br><span class="line">                        <span class="keyword">return</span> mq;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//todo 如果预测的所有broker都不可用，则随机选择一个broker,随机选择该Broker下一个队列进行发送</span></span><br><span class="line">                <span class="keyword">final</span> <span class="type">String</span> <span class="variable">notBestBroker</span> <span class="operator">=</span> latencyFaultTolerance.pickOneAtLeast();</span><br><span class="line">                <span class="comment">//获得Broker的写队列集合</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">writeQueueNums</span> <span class="operator">=</span> tpInfo.getQueueIdByBroker(notBestBroker);</span><br><span class="line">                <span class="keyword">if</span> (writeQueueNums &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">final</span> <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> tpInfo.selectOneMessageQueue();</span><br><span class="line">                    <span class="keyword">if</span> (notBestBroker != <span class="literal">null</span>) &#123;</span><br><span class="line">                        <span class="comment">//获得一个队列,指定broker和队列ID并返回</span></span><br><span class="line">                        mq.setBrokerName(notBestBroker);</span><br><span class="line">                        mq.setQueueId(tpInfo.getSendWhichQueue().getAndIncrement() % writeQueueNums);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">return</span> mq;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    latencyFaultTolerance.remove(notBestBroker);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                log.error(<span class="string">&quot;Error occurred when selecting message queue&quot;</span>, e);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> tpInfo.selectOneMessageQueue();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//todo 默认走这里</span></span><br><span class="line">        <span class="keyword">return</span> tpInfo.selectOneMessageQueue(lastBrokerName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">updateFaultItem</span><span class="params">(<span class="keyword">final</span> String brokerName, <span class="keyword">final</span> <span class="type">long</span> currentLatency, <span class="type">boolean</span> isolation)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.sendLatencyFaultEnable) &#123;</span><br><span class="line">            <span class="comment">//获取不可用持续时长，在这个时间内，Broker将被规避（默认就是本次发送的延迟）</span></span><br><span class="line">            <span class="comment">//这里计算的</span></span><br><span class="line">            <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> computeNotAvailableDuration(isolation ? <span class="number">30000</span> : currentLatency);</span><br><span class="line">            <span class="built_in">this</span>.latencyFaultTolerance.updateFaultItem(brokerName, currentLatency, duration);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//todo 这里是一个根据发送延时来定义故障规避的时间</span></span><br><span class="line">    <span class="comment">//发送延时&#123;50L, 100L, 550L, 1000L, 2000L, 3000L, 15000L&#125;;</span></span><br><span class="line">    <span class="comment">//故障规避&#123;0L, 0L, 30000L, 60000L, 120000L, 180000L, 600000L&#125;;</span></span><br><span class="line">    <span class="comment">//假如：消息发送时长为100毫秒，则mq预计broker的不可用时长为0毫秒</span></span><br><span class="line">    <span class="comment">//假如：消息发送时长为600毫秒，则mq预计broker的不可用时长为30000毫秒</span></span><br><span class="line">    <span class="comment">//假如：消息发送时长为4000毫秒，则mq预计broker的不可用时长为18000毫秒</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">long</span> <span class="title function_">computeNotAvailableDuration</span><span class="params">(<span class="keyword">final</span> <span class="type">long</span> currentLatency)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> latencyMax.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="keyword">if</span> (currentLatency &gt;= latencyMax[i])</span><br><span class="line">                <span class="keyword">return</span> <span class="built_in">this</span>.notAvailableDuration[i];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>选择队列的核心逻辑就是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//todo 遍历队列，判断该Broker是否可用(),删除一段时间内不可用的Broker</span></span><br><span class="line"><span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> tpInfo.getSendWhichQueue().getAndIncrement();</span><br><span class="line"><span class="comment">//对消息队列轮询获取一个队列</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; tpInfo.getMessageQueueList().size(); i++) &#123;</span><br><span class="line">    <span class="comment">//基于index和队列数量取余，确定位置</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> Math.abs(index++) % tpInfo.getMessageQueueList().size();</span><br><span class="line">    <span class="keyword">if</span> (pos &lt; <span class="number">0</span>)</span><br><span class="line">        pos = <span class="number">0</span>;</span><br><span class="line">    <span class="type">MessageQueue</span> <span class="variable">mq</span> <span class="operator">=</span> tpInfo.getMessageQueueList().get(pos);</span><br><span class="line">    <span class="keyword">if</span> (latencyFaultTolerance.isAvailable(mq.getBrokerName()))</span><br><span class="line">        <span class="keyword">return</span> mq;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码很简单，都是轮询队列列表，而重点看<code>latencyFaultTolerance.isAvailable(mq.getBrokerName())</code>这行代码就是该策略的关键。</p>
+<p>在讲解这个方法前，需要看回发送消息的方法<code>sendDefaultImpl</code>。在发送成功或失败时，都会调用<code>DefaultMQProductImpl#updateFaultItem</code>，而这跟中代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DefaultMQProductImpl#updateFaultItem  --&gt;</span><br><span class="line">  MQFaultStrategy.updateFaultItem  --&gt;</span><br><span class="line">  	LatencyFaultToleranceImpl.updateFaultItem</span><br></pre></td></tr></table></figure>
+
+<p>而LatencyFaultToleranceImpl.updateFaultItem的逻辑很简单，就是修改或者新增<code>faultItemTable</code>集合的值。而这个集合时&lt;BrokerName, FaultItem&gt;形式的kv值。其中<code>FaultItem</code>类的定义如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FaultItem</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> String name;<span class="comment">//BrokerName</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">long</span> currentLatency;<span class="comment">//本地消息发送延迟</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">long</span> startTimestamp;<span class="comment">//故障规避开始时间</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>currentLatency</code>表示延迟的时间；<code>startTimestamp</code>就是故障规避的结束时间。<code>currentLatency</code>就是发送发送消息的耗时<code>startTimestamp</code>的计算需要看<code>LatencyFaultToleranceImpl.updateFaultItem</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">faultItem.setStartTimestamp(System.currentTimeMillis() + notAvailableDuration);</span><br></pre></td></tr></table></figure>
+
+<p>而notAvailableDuration的值又需要看<code>MQFaultStrategy.updateFaultItem</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MQFaultStrategy</span></span><br><span class="line"><span class="comment">//发送延迟</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">long</span>[] latencyMax = &#123;<span class="number">50L</span>, <span class="number">100L</span>, <span class="number">550L</span>, <span class="number">1000L</span>, <span class="number">2000L</span>, <span class="number">3000L</span>, <span class="number">15000L</span>&#125;;</span><br><span class="line"><span class="comment">//故障规避</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">long</span>[] notAvailableDuration = &#123;<span class="number">0L</span>, <span class="number">0L</span>, <span class="number">30000L</span>, <span class="number">60000L</span>, <span class="number">120000L</span>, <span class="number">180000L</span>, <span class="number">600000L</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">updateFaultItem</span><span class="params">(<span class="keyword">final</span> String brokerName, <span class="keyword">final</span> <span class="type">long</span> currentLatency, <span class="type">boolean</span> isolation)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.sendLatencyFaultEnable) &#123;</span><br><span class="line">        <span class="comment">//获取不可用持续时长，在这个时间内，Broker将被规避（默认就是本次发送的延迟）</span></span><br><span class="line">        <span class="comment">//这里计算的</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> computeNotAvailableDuration(isolation ? <span class="number">30000</span> : currentLatency);</span><br><span class="line">        <span class="built_in">this</span>.latencyFaultTolerance.updateFaultItem(brokerName, currentLatency, duration);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//todo 这里是一个根据发送延时来定义故障规避的时间</span></span><br><span class="line"><span class="comment">//发送延时&#123;50L, 100L, 550L, 1000L, 2000L, 3000L, 15000L&#125;;</span></span><br><span class="line"><span class="comment">//故障规避&#123;0L, 0L, 30000L, 60000L, 120000L, 180000L, 600000L&#125;;</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">long</span> <span class="title function_">computeNotAvailableDuration</span><span class="params">(<span class="keyword">final</span> <span class="type">long</span> currentLatency)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> latencyMax.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        <span class="keyword">if</span> (currentLatency &gt;= latencyMax[i])</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">this</span>.notAvailableDuration[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码就是根据发送消息的的执行时间来机选故障规则时间的。</p>
+<p>假如：消息发送时长为100毫秒，则mq预计broker的不可用时长为0毫秒<br>假如：消息发送时长为600毫秒，则mq预计broker的不可用时长为30000毫秒<br>假如：消息发送时长为4000毫秒，则mq预计broker的不可用时长为18000毫秒</p>
+<p>还有，从<code>DefaultMQProductClientImpl的sendDefaultImpl</code>中可知，在在出现网络错误，或者Broker返回的错误时，<code>isolation</code>都会传入true，也就是说，在出现了这种错误后，这个Broker都会被Product规避10分钟（默认情况下）</p>
+<p>而且，源码中的发送延迟和规避时间都是可以通过<code>DefaultMQProducer#setLatencyMax(long[])和DefaultMQProducer#setNotAvailableDuration(long[])</code>设置的</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XieYueZhi/cdn/rocketmq/5575707863509729539.png" alt="image-20211116221001959"></p>
+<p>最后，如果全部Broker都不可用了，就采用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">latencyFaultTolerance.pickOneAtLeast();</span><br></pre></td></tr></table></figure>
+
+<p>来随机选择一个队列</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Producer端在发送消息的时候，会先根据Topic找到指定的TopicPublishInfo，在获取了TopicPublishInfo路由信息后，RocketMQ的客户端在默认方式下selectOneMessageQueue()方法会从TopicPublishInfo中的messageQueueList中选择一个队列（MessageQueue）进行发送消息，同时会规避上一次发送消息失败的Broker。具体的容错策略均在MQFaultStrategy这个类中定义。</p>
+<p>但开启了sendLatencyFaultEnable开关变量后，在随机递增取模的基础上，再过滤掉not available的Broker代理。所谓的”latencyFaultTolerance”，是指对之前失败的，按一定的时间做退避。例如，如果上次请求的latency超过550Lms，就退避3000Lms；超过1000L，就退避60000L。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">xyz</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://nbobj.github.io/blog/rocketmq/06%E7%94%9F%E4%BA%A7%E8%80%85%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">https://nbobj.github.io/blog/rocketmq/06生产者负载均衡/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://nbobj.github.io" target="_blank">XYZhi's学习笔记</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rocketmq/">rocketmq</a></div><div class="post_share"></div></div><div class="post-nav"><a class="pre" href="/blog/rocketmq/07%E6%B6%88%E8%B4%B9%E6%B5%81%E7%A8%8B/">07消费流程</a><a class="next" href="/blog/rocketmq/05%E7%94%9F%E4%BA%A7%E8%80%85%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">05生产者源码分析</a></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%98%E8%AE%A4%E7%AD%96%E7%95%A5"><span class="toc-number">1.</span> <span class="toc-text">默认策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#latencyFaultTolerance%EF%BC%88%E6%95%85%E9%9A%9C%E5%BB%B6%E8%BF%9F%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">latencyFaultTolerance（故障延迟机制）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(#0062be)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (true){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

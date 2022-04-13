@@ -48,7 +48,7 @@
   isHome: true,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2022-03-23 20:40:06'
+  postUpdate: '2022-04-13 17:56:47'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -156,176 +156,63 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/zookeeper/01-zookeeper%E8%AE%BE%E8%AE%A1/" title="01-zookeeper设计">01-zookeeper设计</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T02:00:01.000Z" title="发表于 2021-11-14 10:00:01">2021-11-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/zookeeper/">zookeeper</a></span></div><div class="content">该文档不记录权限，这不好记，而且感觉也很少使用，所以只记录一些核心的东西
-Zookeeper能做什么
-数据发布订阅
-负载均衡
-命名服务（全局的id）
-Master选举
-集群管理（集群的注册与发现）
-配置管理
-分布式队列
-分布式锁
-
-ZooKeeper可以保证如下分布式一致性特性顺序一致性从同一个客户端发起的事务请求，最终将会严格地按照其发起顺序被应用到Zookeeper中去。
-原子性所有事务请求的处理结果在整个集群中所有机器上的应用情况是一致的，也就是说，要么整个集群所有机器都成功应用了某一个事务，要么都没有应用，一定不会出现集群中部分机器应用了该事务，而另外一部分没有应用的情况。
-单一视图(SingleSystemImage)无论客户端连接的是哪个ZooKeeper服务器，其看到的服务端数据模型都是一致的。
-可靠性一旦服务端成功地应用了一个事务，并完成对客户端的响应，那么该事务所引起的服务端状态变更将会被一直保留下来，除非有另一个事务又对其进行了变更。
-实时性通常人们看到实时性的第一反应是，一且一个事务被成功应用，那么客户端能够立即从服务端上读取到这个事务变更后的最新数据状态。这里需 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/undo%20%E6%97%A5%E5%BF%97%20(%E4%B8%8B)/" title="undo 日志 (下)">undo 日志 (下)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:20.000Z" title="发表于 2021-11-14 08:00:20">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">标签： MySQL是怎样运行的
-
-上一章我们主要唠叨了为什么需要undo日志，以及INSERT、DELETE、UPDATE这些会对数据做改动的语句都会产生什么类型的undo日志，还有不同类型的undo日志的具体格式是什么。本章会继续唠叨这些undo日志会被具体写到什么地方，以及在写入过程中需要注意的一些问题。
-通用链表结构在写入undo日志的过程中会使用到多个链表，很多链表都有同样的节点结构，如图所示：
-
-在某个表空间内，我们可以通过一个页的页号和在页内的偏移量来唯一定位一个节点的位置，这两个信息也就相当于指向这个节点的一个指针。所以：
-
-Pre Node Page Number和Pre Node Offset的组合就是指向前一个节点的指针
-
-Next Node Page Number和Next Node Offset的组合就是指向后一个节点的指针。
-
-
-整个List Node占用12个字节的存储空间。
-为了更好的管理链表，设计InnoDB的大叔还提出了一个基节点的结构，里边存储了这个链表的头节点、尾节点以及链表长度信息，基节点的结构示意图如下：
-
-其中：
-
-List Length表明 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/19-%E9%94%81/" title="19-锁">19-锁</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:19.000Z" title="发表于 2021-11-14 08:00:19">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">对锁的简单的描述写-写情况在写-写情况：即并发事务相继对相同的记录做出改动。
-我们前边说过，在这种情况下会发生脏写的问题，任何一种隔离级别都不允许这种问题的发生。所以在多个未提交事务相继对一条记录做改动时，需要让它们排队执行，这个排队的过程其实是通过锁来实现的。这个所谓的锁其实是一个内存中的结构，在事务执行前本来是没有锁的，也就是说一开始是没有锁结构和记录进行关联的，如图所示：
-
-当一个事务想对这条记录做改动时，首先会看看内存中有没有与这条记录关联的锁结构，当没有的时候就会在内存中生成一个锁结构与之关联。比方说事务T1要对这条记录做改动，就需要生成一个锁结构与之关联：
-
-
-其实在锁结构里有很多信息，不过为了简化理解，我们现在只把两个比较重要的属性拿了出来：
-
-
-trx信息：代表这个锁结构是哪个事务生成的。
-
-is_waiting：代表当前事务是否在等待。
-
-
-如图所示，当事务T1改动了这条记录后，就生成了一个锁结构与该记录关联，因为之前没有别的事务为这条记录加锁，所以is_waiting属性就是false，我们把这个场景就称之为获取锁成功，或者加锁成功，然后就可以继续执行操作了。
-在事 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/18-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%92%8CMVCC/" title="18-事务隔离级别和MVCC">18-事务隔离级别和MVCC</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:18.000Z" title="发表于 2021-11-14 08:00:18">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">事务隔离级别我们知道MySQL是一个客户端／服务器架构的软件，对于同一个服务器来说，可以有若干个客户端与之连接，每个客户端与服务器连接上之后，就可以称之为一个会话（Session）。每个客户端都可以在自己的会话中向服务器发出请求语句，一个请求语句可能是某个事务的一部分，也就是对于服务器来说可能同时处理多个事务。在事务简介的章节中我们说过事务有一个称之为隔离性的特性，理论上在某个事务对某个数据进行访问时，其他事务应该进行排队，当该事务提交之后，其他事务才可以继续访问这个数据。但是这样子的话对性能影响太大，我们既想保持事务的隔离性，又想让服务器在处理访问同一数据的多个事务时性能尽量高些，鱼和熊掌不可得兼，舍一部分隔离性而取性能者也。
-
-脏写（Dirty Write）
-如果一个事务修改了另一个未提交事务修改过的数据，那就意味着发生了脏写
-
-脏读（Dirty Read）
-如果一个事务读到了另一个未提交事务修改过的数据，那就意味着发生了脏读
-
-不可重复读（Non-Repeatable Read）
-果一个事务只能读到另一个已经提交的事务修改过的数据，并且其他事务每对该数据进行一次修改并提交后，该事 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/17-undo%E6%97%A5%E5%BF%97/" title="17-undo日志">17-undo日志</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:17.000Z" title="发表于 2021-11-14 08:00:17">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">在一个事务中，当我们要对一条记录做改动时（这里的改动可以指INSERT、DELETE、UPDATE）都需要把回滚时所需的东西都给记下来，这种日志就是undo log，也就是回滚日志，也叫undo日志。而会在两种场景下需要用到undo日志进行回滚
-
-运行时
-事务失败或手动执行了ROLLBACK
-
-崩溃恢复时
-
-
-事务id如果某个事务执行过程中对某个表执行了增、删、改操作，那么InnoDB存储引擎就会给它分配一个独一无二的事务id。
-
-注意：
-只有在它第一次对某个表（包括用户创建的临时表）执行增、删、改操作时才会为这个事务分配一个事务id，否则的话也是不分配事务id的。
-
-事务id是怎么生成的这个事务id本质上就是一个数字，它的分配策略和我们前边提到的对隐藏列row_id（当用户没有为表创建主键和UNIQUE键时InnoDB自动创建的列）的分配策略大抵相同，具体策略如下：
-
-服务器会在内存中维护一个全局变量，每当需要为某个事务分配一个事务id时，就会把该变量的值当作事务id分配给该事务，并且把该变量自增1。
-
-每当这个变量的值为256的倍数时，就会将该变量的值刷新到系统表空间的页号为5的页 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/16-redo%E6%97%A5%E5%BF%97/" title="16-redo日志">16-redo日志</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:16.000Z" title="发表于 2021-11-14 08:00:16">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">InnoDB存储引擎是以页为单位来管理存储空间的，我们进行的增删改查操作其实本质上都是在访问页面（包括读页面、写页面、创建新页面等操作）。在直接讲[“14-InnoDB 的 Buffer Pool”](.&#x2F;14-InnoDB 的 Buffer Pool.md)时，讲过，当访问一行的数据时（读or写），会把该行所在的页的数据加载到内存中，然后在内存中对某一行的数据进行操作。但事务又要求写操作必须具有持久性，就是说对于一个已经提交的事务，在事务提交后即使系统发生了崩溃，这个事务对数据库中所做的更改也不能丢失。但是如果我们只在内存的Buffer Pool中修改了页面，假设在事务提交后突然发生了某个故障，导致内存中的数据都失效了，那么这个已经提交了的事务对数据库中所做的更改也就跟着丢失了，这是我们所不能忍受的。最简单的做法就是在事务提交前把该事务所修改的的所有页都刷新到磁盘中，但这样做有两个问题：
-
-刷新一个完整的数据页太浪费了
-只修改一个字节就要刷新16KB的数据到磁盘上显然是太浪费了。（为什么不能只刷新一个自己，这就和操作系统的磁盘机制有关）
-
-随机IO刷起来比较慢
-一个事务可能 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/15-%E4%BA%8B%E5%8A%A1%E7%AE%80%E4%BB%8B/" title="15-事务简介">15-事务简介</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:15.000Z" title="发表于 2021-11-14 08:00:15">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">
-原子性（Atomicity）
-要不全部成功，要不全部失败
-
-隔离性（Isolation）
-保证其它的状态转换不会影响到本次状态转换。
-数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。事务隔离分为不同级别，包括读未提交（Read uncommitted）、读提交（read committed）、可重复读（repeatable read）和串行化（Serializable）。
-
-一致性（Consistency）
-在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的资料必须完全符合所有的预设规则。
-比如：银行存的金额大于0、转账时a转给了b100圆，那a减少100，b增加了100等
-&#x3D;&#x3D;数据库某些操作的原子性和隔离性都是保证一致性的一种手段，在操作执行完成后保证符合所有既定的约束则是一种结果&#x3D;&#x3D;
-
-持久性（Durability）
-事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。
-
-
-把需要保证原子性、隔离性、一致性和持久性的一个或多个数据库操作称之 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/14-InnoDB%20%E7%9A%84%20Buffer%20Pool/" title="14-InnoDB 的 Buffer Pool">14-InnoDB 的 Buffer Pool</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:14.000Z" title="发表于 2021-11-14 08:00:14">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">缓存的重要性通过前边的唠叨我们知道，对于使用InnoDB作为存储引擎的表来说，不管是用于存储用户数据的索引（包括聚簇索引和二级索引），还是各种系统数据，都是以页的形式存放在表空间中的，而所谓的表空间只不过是InnoDB对文件系统上一个或几个实际文件的抽象，也就是说我们的数据说到底还是存储在磁盘上的。但是各位也都知道，磁盘的速度慢的跟乌龟一样，怎么能配得上“快如风，疾如电”的CPU呢？所以InnoDB存储引擎在处理客户端的请求时，当需要访问某个页的数据时，就会把完整的页的数据全部加载到内存中，也就是说即使我们只需要访问一个页的一条记录，那也需要先把整个页的数据加载到内存中。将整个页加载到内存中后就可以进行读写访问了，在进行完读写访问之后并不着急把该页对应的内存空间释放掉，而是将其缓存起来，这样将来有请求再次访问该页面时，就可以省去磁盘IO的开销了。
-InnoDB的Buffer PoolInnoDB为了缓存磁盘中的页在MySQL服务器启动的时候就向操作系统申请了一片连续的内存，他们给这片内存起了个名，叫做Buffer Pool（中文名是缓冲池）。默认情况下Buffer Pool只有128M ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/13-%E6%9F%A5%E7%9C%8B%E7%94%9F%E6%88%90%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E8%BF%87%E7%A8%8B---optimizer%20trace/" title="13-查看生成执行计划过程---optimizer trace">13-查看生成执行计划过程---optimizer trace</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:13.000Z" title="发表于 2021-11-14 08:00:13">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">optimizer trace这个功能可以让我们方便的查看优化器生成执行计划的整个过程，这个功能的开启与关闭由系统变量optimizer_trace决定，我们看一下：
-1234567mysql&gt; SHOW VARIABLES LIKE &#x27;optimizer_trace&#x27;;+-----------------+--------------------------+| Variable_name   | Value                    |+-----------------+--------------------------+| optimizer_trace | enabled=off,one_line=off |+-----------------+--------------------------+1 row in set (0.02 sec)
-
-可以看到enabled值为off，表明这个功能默认是关闭的。
-
-one_line的值是控制输出格式的，如果为on那么所有输出都将在一行中展示，不适合人阅读，所以我们就保持其默认值为off吧。
- ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/mysql/12-Explain%20%E8%AF%A6%E8%A7%A3/" title="12-Explain 详解">12-Explain 详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T00:00:12.000Z" title="发表于 2021-11-14 08:00:12">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/mysql/">mysql</a></span></div><div class="content">EXPLAIN语句输出的各个列的作用大致罗列一下：
-
-
-
-列名
-描述
-
-
-
-id
-在一个大的查询语句中每个SELECT关键字都对应一个唯一的id
-
-
-select_type
-SELECT关键字对应的那个查询的类型
-
-
-table
-表名
-
-
-partitions
-匹配的分区信息
-
-
-type
-针对单表的访问方法
-
-
-possible_keys
-可能用到的索引
-
-
-key
-实际上使用的索引
-
-
-key_len
-实际使用到的索引长度
-
-
-ref
-当使用索引列等值查询时，与索引列进行等值匹配的对象信息
-
-
-rows
-预估的需要读取的记录条数
-
-
-filtered
-某个表经过搜索条件过滤后剩余记录条数的百分比
-
-
-Extra
-一些额外的信息
-
-
-执行计划输出中各列详解table不论我们的查询语句有多复杂，里边儿包含了多少个表，到最后也是需要对每个表进行单表访问的，所以MySQL规定&#x3D;&#x3D;EXPLAIN语句输出的每条记录都对应着某个单表的访问方法，该条记录的table列代表着该表的表名&#x3D;&#x3D;
-id
-在连接查询的执行计划中，每个表都会对应一条记录，这些记录的id列 ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/30/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/#content-inner">30</a><span class="page-number current">31</span><a class="page-number" href="/page/32/#content-inner">32</a><a class="page-number" href="/page/33/#content-inner">33</a><a class="extend next" rel="next" href="/page/32/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">321</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/05-Nacos%E4%B8%AD%E7%9A%84AbstractNacosTaskExecuteEngine/" title="05-Nacos中的AbstractNacosTaskExecuteEngine">05-Nacos中的AbstractNacosTaskExecuteEngine</a><time datetime="2021-11-27T12:00:40.000Z" title="发表于 2021-11-27 20:00:40">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/04-Server%E5%92%8CClient%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96nacos%E5%9C%B0%E5%9D%80/" title="04-Server和Client动态获取nacos地址">04-Server和Client动态获取nacos地址</a><time datetime="2021-11-27T12:00:39.000Z" title="发表于 2021-11-27 20:00:39">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/03-Nacos%E7%9A%84%E5%8F%91%E5%B8%83%E4%B8%8E%E8%AE%A2%E9%98%85/" title="03-Nacos的发布与订阅">03-Nacos的发布与订阅</a><time datetime="2021-11-27T12:00:38.000Z" title="发表于 2021-11-27 20:00:38">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/02-Nacos%20Server%E4%B8%AD%E7%9A%84Secured%E6%B3%A8%E8%A7%A3/" title="02-Nacos Server中的Secured注解">02-Nacos Server中的Secured注解</a><time datetime="2021-11-27T12:00:37.000Z" title="发表于 2021-11-27 20:00:37">2021-11-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/springcloud/nacos%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/01-Nacos%20Server%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9A%84%E5%86%99%E6%97%B6%E5%A4%8D%E5%88%B6/" title="01-Nacos Server服务注册表的写时复制">01-Nacos Server服务注册表的写时复制</a><time datetime="2021-11-27T12:00:36.000Z" title="发表于 2021-11-27 20:00:36">2021-11-27</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+    })(window)</script><meta name="generator" content="Hexo 6.1.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/images/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">XYZhi's学习笔记</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 文章</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E9%9B%86%E7%BE%A4/01%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" title="01主从复制">01主从复制</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:09.000Z" title="发表于 2021-11-14 20:00:09">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">集群理论知识先了解一些集群理论知识
+最终一致Redis的主从数据是异步同步的，所以分布式的Redis系统并不满足一致性要求。当客户端在Redis的主节点修改了数据后，立即返回，即使在主从网络断开的情况下，主节点依旧可以正常对外提供修改服务，所以Redis满足可用性。
+Redis保证最终一致性，´从节点会努力追赶主节点，最终从节点的状态会和主节点的状态保持一致。如果网络断开了，主从节点的数据将会出现大量不一致，但一旦网络恢复，从节点会采用多种策略努力追赶，继续尽力保持和主节点一致。
+主从同步与从从同步
+增量同步Redis同步的是指令流，主节点会将那些对自己的状态产生修改性影响的指令记录在本地的内存buffer中，然后异步将buffer中的指令同步到从节点，从节点一边执行同步的指令流来达到和主节点一样的状态，一边向主节点反馈自己同步到哪里了(偏移量）。
+因为内存的buffer是有限的，所以Redis主节点不能将所有的指令都记录在内存buffer中(repl_backlog_buffer)。Redis的复制内存buffer是一个定长的环形数组，如图所示，如果数组内容满了，就会从头开始覆盖前面 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/%E9%99%90%E6%B5%81/" title="限流">限流</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:08.000Z" title="发表于 2021-11-14 20:00:08">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">这个限流需求中存在一个滑动时间窗口(定宽〉，想想zset数据结构的score值，是不是可以通过score来圈出这个时间窗口来。我们只需要保留这个时间窗口，窗口之外的数据都可以砍掉。那这个zset的value填什么比较合适呢？它只需要保证唯一性即可，用uuid会比较浪费空间，那就改用毫秒时间戳吧。如图，用一个zset结构记录用户的行为历史，每一个行为都会作为zset中的一个key保存下来。同一个用户的同一种行为用一个zset记录。为节省内存，我们只需要保留时间窗口内的行为记录，同时如果用户是冷用户，滑动时间窗口内的行为是空记录，那么这个zset就可以从内存中移除，不再占用空间。通过统计滑动窗口内的行为数量与阙值max_count进行比较就可以得出当前的行为是否被允许。用代码表示如下。
+漏斗限流漏斗的容量是有限的，如果将漏嘴堵住，然后一直往里面灌水，它就会变满，直至再也装不进去。如果将漏嘴放开，水就会往下流，流走一部分之后，就又可以继续往里面灌水。如果漏嘴流水的速率大于灌水的速率，那么漏斗永远都装不满。如果漏嘴流水速率小于灌水的速率，那么一旦漏斗满了，灌水就需要暂停并等待漏斗腾出一部分空间 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/" title="布隆过滤器">布隆过滤器</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:07.000Z" title="发表于 2021-11-14 20:00:07">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">专门用来解决这种去重问题，在空间上还能节省90%以上，只是稍微有那么点不精确，也就是有定的误判概率。
+布隆过滤器说某个值存在时，这个值可能不存在；当它说某个值不存在时，那就肯定不存在。
+使用方法bf.add 添加元素bf.exists 查询元素是否存在bf.madd 批量添加元素bf.mexists 检查多个元素是否存在
+自定义参数的bloom-filter使用bf.reserver显示创建。如果对应的key存在，会报错。有三个参数：
+
+key：bf的key
+error_rate：错误率，error_rate越低，需要的空间越大。
+initial_size：表示预计放入的元素数量，当实际数量超出这个数值时，误判率会上升，所以需要提前设置一个较大的数值避免超出导致误判率升高。
+
+不指定的情况下，默认error_rate是0.01，initial_size是100。
+initial_size设置得过大，会浪费存储空间，设置得过小，就会影响准确率，用户在使用之前一定要尽可能地精确估计元素数量，还需要加上一定的冗余空间以避免实际元素可能会意外高出估计值很多。
+error_rate越小，需要的存 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="基础数据结构">基础数据结构</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:06.000Z" title="发表于 2021-11-14 20:00:06">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">redis的string字符串是一个名为SDS的结构，
+123456//sds.hstruct sdshdr &#123;    unsigned int len;    unsigned int free;    char buf[];&#125;;
+
+可以看到底层是一个字符数组  类似ArrayList，由于redis的内存分配机制，也就是采用预分配冗余空间的方式来减少内存的频繁分配。当字符串长度小于1MB时,扩容都是加倍现有的空间。如果字符串长度超过1MB ,扩容时一次只会多扩1MB的空间。需要注意的是字符串最大长度为512MB。 
+字符串由多个字节组成,每个字节又由8个bit组成,如此便可以将一个字符串看成很多bit的组合,这便是bitmap(位图)数据结构
+所以通过这样的设计就有一个问题了，就是会有额外的占用，数据少时没什么，但如果数据一多，这额外的占用就很大了，这时可以考虑下采用一定的策略，使用集合类型，因为集合类型有非常节省内存空间的底层实现结构。
+list类似于LinkedList，是双向链表。当列表弹出了最后一个元素之后,该数据结构被自动删除,内存被回收。根据需求可以 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/%E4%BD%8D%E5%9B%BE/" title="位图">位图</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:05.000Z" title="发表于 2021-11-14 20:00:05">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">介绍位图不是特殊的数据结构，它的内容其实就是普通的字符串，也就是byte数组。我们可以使用普通的ge的et直接获取和设置整个位图的内窑，也可以使用位图操作getbit/setbit等将byte数组看成“位数组”来处理。使用：127.0.0.1:6379&gt; setbit s 1 1  127.0.0.1:6379&gt; get s上面这个例子可以理解为“零存整取”，同样我们还可以“零存零取”或者“整存零取”。“零存”就是使用setbit对位值进行逐个设置，“整存”就是使用字符串一次性填充所有位数组，覆盖掉旧值。
+零存零取使用单个位操作设置位值，使用单个位操作获取具体位值。
+整存零取使用字符串操作批量设置位值，使用单个位操作获取具体位值。如果对应位的字节是不可打印字符,redis-cli会显示该字符的十六进制形式。
+统计和查找Redis提供了位图统计指令bitcount和位图查找指令bitpos。bitcount用来统计指定位置范围内1的个数，bitpos用来查找指定范围内出现的第一个0或1。比如我们可以通过bitcount统计用户一共签到了多少天。通过bitpos指令查找用户从哪 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/scan-%E6%90%9C%E7%B4%A2/" title="scan-搜索">scan-搜索</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:04.000Z" title="发表于 2021-11-14 20:00:04">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">scan具备一下特点。
+
+复杂度虽然也是O(n)，但它是通过游标分步进行的，不会阻塞线程。
+limit参数，可以控制每次返回结果的最大条数，limit只是个hint（暗示），返回的结果可多可少。
+同keys一样，它也提供模式匹配功能。
+服务器不需要为游标保存状态，游标的唯一状态就是scan返回给客户端的游标整数。
+返回的结果可能会有重复，需要客户端去重，这点非常重要。
+遍历的过程中如果有数据修改，改动后的数据能不能遍历到是不确定的。
+单次返回的结果是空的并不意昧着遍历结束，而要看返回的游标值是否为零。
+
+用法scan 0 match key99* count 1000scan 13976 match key99* count 10000时结束。虽然提供的limit是1000，但是返回的结果却只有10个左右。因为这个limit不是限定返回结果的数量，而是限定服务器单次遍历的字典槽位数量(约等于)。如果将limit设置为10，你会发现返回结果是空的，但是游标值不为零，意昧着遍历还没结束。
+原理解析在Redis中所有的key都存储在一个很大的字典中，这个字典的结构和Java中的HashMap ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/redis%E5%AF%BC%E5%85%A5%E6%A8%A1%E5%9D%97/" title="redis导入模块">redis导入模块</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:03.000Z" title="发表于 2021-11-14 20:00:03">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">在配置redis.conf中加上loadmodule modulePath比如：loadmodule /path/to/mymodule.so也可以redis-server loadmodule &#x2F;path&#x2F;to&#x2F;mymodule.so 配置
+使用客户端使用命令：加载：MODULE LOAD modulePath例子：MODULE LOAD /path/to/panda.so
+卸载：MODULE UNLOAD moduleName例子：MODULE UNLOAD panda
+列出加载了的模块Sshdobbf返回模块名称列表
+</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/HyperLogLog-%E4%B8%8D%E7%B2%BE%E7%A1%AE%E7%9A%84%E5%8E%BB%E9%87%8D%E8%AE%A1%E6%95%B0%E6%96%B9%E6%A1%88/" title="HyperLogLog-不精确的去重计数方案">HyperLogLog-不精确的去重计数方案</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:02.000Z" title="发表于 2021-11-14 20:00:02">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">有一些统计需求如果要精确统计的话会很浩资源，比如UV：用户访问统计，它要去重，同一个用户一天之内的多次访问请求只能计数一次。一个简单的方案，那就是为每一个页面设置一个独立的set集合来存储所有当天访问过此页面的用户囚。当一个请求过来时，我们使用sadd将用户ID塞进去就可以了。通过scard可以取出这个集合的大小，这个数字就是这个页面的UV数据。有个问题，如果访问量大了后，就太消耗内存了！而且如果不需要太精确，105万和104万没多大区别。对于这种情况，可以使用HyperLogLog。HyperLogLog提供不精确的去重计数方案，虽然不精确，但是也不是非常离谱，标准误差是0.81%。
+使用方法pfadd 增加计数pfcount 获取计数
+合并统计PFMERGE destkey sourcekey [sourcekey …]
+将多个 HyperLogLog 合并（merge）为一个 HyperLogLog ， 合并后的 HyperLogLog 的基数接近于所有输入 HyperLogLog 的可见集合（observed set）的并集。
+合并得出的 HyperLogLog 会被储存在 d ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/redis/%E5%9F%BA%E7%A1%80%E5%92%8C%E5%BA%94%E7%94%A8/GeoHash-%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AEGeo/" title="GeoHash-地理位置Geo">GeoHash-地理位置Geo</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T12:00:01.000Z" title="发表于 2021-11-14 20:00:01">2021-11-14</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/redis/">redis</a></span></div><div class="content">可以使用Redis来实现类似摩拜单车的“附近的Mobike”、美团和饿了么的“附近的餐馆”这样的功能了
+GeoHash算法GeoHash算法将二维的经纬度数据映射到一维的整数，这样所有的元素都将挂载到一条线上，距离靠近的二维坐标映射到一维后的点之间距离也会很接近。当我们想要计算“附近的人”时，首先将目标位置映射到这条线上，然后在这个一维的线上获取附近的点就行了。它将整个地球看成一个二维平面，然后划分成了一系列正方形的方格，就好比围棋棋盘。所有的地图元素坐标都将被放置于唯一的方格中。方格越小，坐标越精确。然后对这些方格进行整数编码，越是靠近的方格编码越是接近。那如何编码呢？个最简单的方案就是切蛋糕法。如图所示，设想一个正方形的蛋糕、摆在你面前，二刀下去均分分成四块小正方形，这四个小正方形可以分别标记为00，01，10，11四个二进制整数。然后对每一个小正方形继续用二刀法切割，这时每个小小正方形就可以使用4bit的二进制整数表示。然后继续切下去，正方形就会越来越小，二进制整数也会越来越长，精确度就会越来越高。编码之后，每个地图元素的坐标都将变成一个整数，通过这个整数可以还原出元素的坐标，整 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/blog/dubbo/2.7/34REST%E6%94%AF%E6%8C%81/" title="34REST支持">34REST支持</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-11-14T03:00:35.000Z" title="发表于 2021-11-14 11:00:35">2021-11-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/dubbo/">dubbo</a></span></div><div class="content">代码123dubbo.protocols.RESTTEST.id=RESTTESTdubbo.protocol.RESTTEST.name=restdubbo.protocols.RESTTEST.port=8083
+
+Provider：
+123456789101112131415161718192021222324252627282930313233public interface DemoService &#123;    // 同步调用方法    String sayHello(String name);    // 异步调用方法    default CompletableFuture&lt;String&gt; sayHelloAsync(String name) &#123;        return null;    &#125;;    // 添加回调    default String sayHello(String name, String key, DemoServiceListener listener) &#123;        return null;  ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/30/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/#content-inner">30</a><span class="page-number current">31</span><a class="page-number" href="/page/32/#content-inner">32</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/#content-inner">41</a><a class="extend next" rel="next" href="/page/32/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">xyz</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">410</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">16</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/broker%E5%90%AF%E5%8A%A8/" title="broker启动">broker启动</a><time datetime="2022-01-14T00:00:16.000Z" title="发表于 2022-01-14 08:00:16">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/13%E6%B6%88%E6%81%AF%E8%BF%87%E6%BB%A4/" title="13消息过滤">13消息过滤</a><time datetime="2022-01-14T00:00:15.000Z" title="发表于 2022-01-14 08:00:15">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/12broker%E5%A4%84%E7%90%86Consumer%E6%8B%89%E5%8F%96%E6%B6%88%E6%81%AF%E8%AF%B7%E6%B1%82/" title="12broker处理Consumer拉取消息请求">12broker处理Consumer拉取消息请求</a><time datetime="2022-01-14T00:00:14.000Z" title="发表于 2022-01-14 08:00:14">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/11%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" title="11消费者的负载均衡">11消费者的负载均衡</a><time datetime="2022-01-14T00:00:13.000Z" title="发表于 2022-01-14 08:00:13">2022-01-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/blog/rocketmq/10DefaultMQPushConsumer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="10DefaultMQPushConsumer源码分析">10DefaultMQPushConsumer源码分析</a><time datetime="2022-01-14T00:00:12.000Z" title="发表于 2022-01-14 08:00:12">2022-01-14</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
             <i class="fas fa-folder-open"></i>
             <span>分类</span>
             
             </div>
             <ul class="card-category-list" id="aside-cat-list">
-            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/java/"><span class="card-category-list-name">java</span><span class="card-category-list-count">75</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/"><span class="card-category-list-name">中间件</span><span class="card-category-list-count">46</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/"><span class="card-category-list-name">开源框架</span><span class="card-category-list-count">73</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"><span class="card-category-list-name">微服务</span><span class="card-category-list-count">40</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/"><span class="card-category-list-name">开源框架</span><span class="card-category-list-count">40</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/"><span class="card-category-list-name">网络编程</span><span class="card-category-list-count">35</span></a></li>
-            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/java/" style="font-size: 1.25em; color: rgb(9, 180, 91)">java</a><a href="/tags/javaNIO/" style="font-size: 1.17em; color: rgb(179, 148, 137)">javaNIO</a><a href="/tags/juc/" style="font-size: 1.27em; color: rgb(179, 143, 131)">juc</a><a href="/tags/mybatis/" style="font-size: 1.27em; color: rgb(8, 191, 193)">mybatis</a><a href="/tags/jvm/" style="font-size: 1.42em; color: rgb(183, 163, 128)">jvm</a><a href="/tags/mysql/" style="font-size: 1.3em; color: rgb(35, 1, 73)">mysql</a><a href="/tags/netty/" style="font-size: 1.32em; color: rgb(134, 193, 166)">netty</a><a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" style="font-size: 1.15em; color: rgb(177, 44, 21)">网络编程</a><a href="/tags/nginx/" style="font-size: 1.17em; color: rgb(105, 91, 56)">nginx</a><a href="/tags/redis/" style="font-size: 1.35em; color: rgb(111, 130, 137)">redis</a><a href="/tags/springboot/" style="font-size: 1.2em; color: rgb(66, 48, 172)">springboot</a><a href="/tags/spring/" style="font-size: 1.45em; color: rgb(185, 9, 2)">spring</a><a href="/tags/zookeeper/" style="font-size: 1.22em; color: rgb(54, 47, 57)">zookeeper</a><a href="/tags/springcloud/" style="font-size: 1.4em; color: rgb(114, 174, 107)">springcloud</a><a href="/tags/dubbo/" style="font-size: 1.38em; color: rgb(56, 157, 60)">dubbo</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/11/"><span class="card-archive-list-date">十一月 2021</span><span class="card-archive-list-count">321</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">321</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2021-11-14T16:00:00.000Z"></div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">724.1k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2022-03-23T12:40:04.645Z"></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/java/"><span class="card-category-list-name">java</span><span class="card-category-list-count">79</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/"><span class="card-category-list-name">中间件</span><span class="card-category-list-count">130</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/"><span class="card-category-list-name">开源框架</span><span class="card-category-list-count">73</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"><span class="card-category-list-name">微服务</span><span class="card-category-list-count">40</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E5%BC%80%E6%BA%90%E6%A1%86%E6%9E%B6/"><span class="card-category-list-name">开源框架</span><span class="card-category-list-count">40</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/"><span class="card-category-list-name">网络编程</span><span class="card-category-list-count">36</span></a></li>
+            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/java/" style="font-size: 1.24em; color: rgb(87, 81, 153)">java</a><a href="/tags/javaNIO/" style="font-size: 1.17em; color: rgb(71, 88, 45)">javaNIO</a><a href="/tags/juc/" style="font-size: 1.29em; color: rgb(97, 145, 1)">juc</a><a href="/tags/mybatis/" style="font-size: 1.27em; color: rgb(154, 26, 193)">mybatis</a><a href="/tags/jvm/" style="font-size: 1.4em; color: rgb(84, 35, 187)">jvm</a><a href="/tags/mysql/" style="font-size: 1.31em; color: rgb(175, 165, 153)">mysql</a><a href="/tags/netty/" style="font-size: 1.33em; color: rgb(88, 190, 200)">netty</a><a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" style="font-size: 1.15em; color: rgb(44, 87, 199)">网络编程</a><a href="/tags/nginx/" style="font-size: 1.17em; color: rgb(171, 161, 30)">nginx</a><a href="/tags/redis/" style="font-size: 1.36em; color: rgb(179, 138, 40)">redis</a><a href="/tags/springboot/" style="font-size: 1.2em; color: rgb(48, 75, 74)">springboot</a><a href="/tags/spring/" style="font-size: 1.43em; color: rgb(83, 158, 123)">spring</a><a href="/tags/zookeeper/" style="font-size: 1.22em; color: rgb(46, 3, 81)">zookeeper</a><a href="/tags/springcloud/" style="font-size: 1.38em; color: rgb(178, 49, 189)">springcloud</a><a href="/tags/dubbo/" style="font-size: 1.45em; color: rgb(143, 30, 16)">dubbo</a><a href="/tags/rocketmq/" style="font-size: 1.4em; color: rgb(183, 180, 83)">rocketmq</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/01/"><span class="card-archive-list-date">一月 2022</span><span class="card-archive-list-count">49</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2021/11/"><span class="card-archive-list-date">十一月 2021</span><span class="card-archive-list-count">361</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">410</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2021-11-14T16:00:00.000Z"></div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">840.5k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2022-04-13T09:56:45.680Z"></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By xyz</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
   if (typeof pangu === 'object') pangu.autoSpacingPage()
   else {
     getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
